@@ -235,11 +235,10 @@ function Navbar() {
   return (
     <nav
       id="navbar"
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
-        scrolled
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${scrolled
           ? "bg-charcoal/95 backdrop-blur-xl shadow-[0_4px_30px_rgba(0,0,0,0.4)] border-b border-golden/10"
           : "bg-transparent"
-      }`}
+        }`}
     >
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-20 items-center justify-between">
@@ -248,9 +247,11 @@ function Navbar() {
             href="#home"
             className="group flex items-center gap-3"
           >
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-golden to-golden-dark shadow-lg shadow-golden/20 transition-transform duration-300 group-hover:scale-110">
-              <UtensilsCrossed className="h-5 w-5 text-charcoal" />
-            </div>
+            <img
+              src="/logo/logo.png"
+              alt="Logo"
+              className="h-10 w-10 rounded-full"
+            />
             <span className="font-[var(--font-playfair)] text-xl font-bold tracking-wide text-cream">
               Dapoer <span className="text-golden">Bulek</span>
             </span>
@@ -291,9 +292,8 @@ function Navbar() {
 
       {/* Mobile Menu */}
       <div
-        className={`overflow-hidden transition-all duration-500 md:hidden ${
-          mobileOpen ? "max-h-[400px] opacity-100" : "max-h-0 opacity-0"
-        }`}
+        className={`overflow-hidden transition-all duration-500 md:hidden ${mobileOpen ? "max-h-[400px] opacity-100" : "max-h-0 opacity-0"
+          }`}
       >
         <div className="border-t border-cream/5 bg-charcoal/98 backdrop-blur-xl px-4 pb-6 pt-4">
           {NAV_LINKS.map((link) => (
@@ -338,6 +338,7 @@ function Hero() {
           src="/images/hero-bg.png"
           alt="Dapoer Bulek catering"
           fill
+          sizes="100vw"
           className="object-cover"
           priority
         />
@@ -355,11 +356,10 @@ function Hero() {
         <div className="max-w-2xl">
           {/* Badge */}
           <div
-            className={`mb-6 inline-flex items-center gap-2 rounded-full border border-golden/20 bg-golden/10 px-4 py-2 backdrop-blur-sm transition-all duration-700 ${
-              isVisible
+            className={`mb-6 inline-flex items-center gap-2 rounded-full border border-golden/20 bg-golden/10 px-4 py-2 backdrop-blur-sm transition-all duration-700 ${isVisible
                 ? "translate-y-0 opacity-100"
                 : "translate-y-8 opacity-0"
-            }`}
+              }`}
           >
             <Sparkles className="h-4 w-4 text-golden" />
             <span className="text-sm font-medium text-golden">
@@ -369,11 +369,10 @@ function Hero() {
 
           {/* Headline */}
           <h1
-            className={`font-[var(--font-playfair)] text-4xl font-bold leading-tight tracking-tight text-cream sm:text-5xl lg:text-6xl transition-all duration-700 delay-150 ${
-              isVisible
+            className={`font-[var(--font-playfair)] text-4xl font-bold leading-tight tracking-tight text-cream sm:text-5xl lg:text-6xl transition-all duration-700 delay-150 ${isVisible
                 ? "translate-y-0 opacity-100"
                 : "translate-y-8 opacity-0"
-            }`}
+              }`}
           >
             Sajian{" "}
             <span className="relative">
@@ -387,11 +386,10 @@ function Hero() {
 
           {/* Subheadline */}
           <p
-            className={`mt-6 max-w-lg text-lg leading-relaxed text-cream/70 transition-all duration-700 delay-300 ${
-              isVisible
+            className={`mt-6 max-w-lg text-lg leading-relaxed text-cream/70 transition-all duration-700 delay-300 ${isVisible
                 ? "translate-y-0 opacity-100"
                 : "translate-y-8 opacity-0"
-            }`}
+              }`}
           >
             Melayani pemesanan{" "}
             <span className="font-semibold text-cream">Tumpeng</span>,{" "}
@@ -403,11 +401,10 @@ function Hero() {
 
           {/* CTAs */}
           <div
-            className={`mt-10 flex flex-wrap items-center gap-4 transition-all duration-700 delay-[450ms] ${
-              isVisible
+            className={`mt-10 flex flex-wrap items-center gap-4 transition-all duration-700 delay-[450ms] ${isVisible
                 ? "translate-y-0 opacity-100"
                 : "translate-y-8 opacity-0"
-            }`}
+              }`}
           >
             <a
               href="#menu"
@@ -429,11 +426,10 @@ function Hero() {
 
           {/* Stats */}
           <div
-            className={`mt-16 flex items-center gap-8 sm:gap-12 transition-all duration-700 delay-[600ms] ${
-              isVisible
+            className={`mt-16 flex items-center gap-8 sm:gap-12 transition-all duration-700 delay-[600ms] ${isVisible
                 ? "translate-y-0 opacity-100"
                 : "translate-y-8 opacity-0"
-            }`}
+              }`}
           >
             {[
               { value: "6+", label: "Tahun Melayani" },
@@ -484,9 +480,8 @@ function MenuCatalog() {
       <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div
-          className={`mx-auto max-w-2xl text-center transition-all duration-700 ${
-            isVisible ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"
-          }`}
+          className={`mx-auto max-w-2xl text-center transition-all duration-700 ${isVisible ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"
+            }`}
         >
           <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-golden/20 bg-golden/10 px-4 py-1.5">
             <UtensilsCrossed className="h-3.5 w-3.5 text-golden" />
@@ -505,19 +500,17 @@ function MenuCatalog() {
 
         {/* Category Tabs */}
         <div
-          className={`mt-12 flex flex-wrap justify-center gap-2 sm:gap-3 transition-all duration-700 delay-200 ${
-            isVisible ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"
-          }`}
+          className={`mt-12 flex flex-wrap justify-center gap-2 sm:gap-3 transition-all duration-700 delay-200 ${isVisible ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"
+            }`}
         >
           {CATEGORIES.map((cat) => (
             <button
               key={cat}
               onClick={() => setActiveCategory(cat)}
-              className={`rounded-full px-5 py-2.5 text-sm font-medium transition-all duration-300 ${
-                activeCategory === cat
+              className={`rounded-full px-5 py-2.5 text-sm font-medium transition-all duration-300 ${activeCategory === cat
                   ? "bg-gradient-to-r from-golden to-golden-dark text-charcoal shadow-lg shadow-golden/25"
                   : "border border-cream/10 bg-cream/5 text-cream/60 hover:border-golden/30 hover:text-golden"
-              }`}
+                }`}
             >
               {cat}
             </button>
@@ -546,11 +539,10 @@ function MenuCard({
 }) {
   return (
     <div
-      className={`group relative overflow-hidden rounded-2xl border border-cream/5 bg-charcoal-light/50 backdrop-blur-sm transition-all duration-500 hover:border-golden/20 hover:shadow-2xl hover:shadow-golden/5 hover:-translate-y-1 ${
-        parentVisible
+      className={`group relative overflow-hidden rounded-2xl border border-cream/5 bg-charcoal-light/50 backdrop-blur-sm transition-all duration-500 hover:border-golden/20 hover:shadow-2xl hover:shadow-golden/5 hover:-translate-y-1 ${parentVisible
           ? "translate-y-0 opacity-100"
           : "translate-y-12 opacity-0"
-      }`}
+        }`}
       style={{ transitionDelay: parentVisible ? `${300 + index * 100}ms` : "0ms" }}
     >
       {/* Image */}
@@ -559,6 +551,7 @@ function MenuCard({
           src={item.image}
           alt={item.name}
           fill
+          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
           className="object-cover transition-transform duration-700 group-hover:scale-110"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-charcoal/80 via-transparent to-transparent" />
@@ -630,9 +623,8 @@ function AboutSection() {
         <div className="grid gap-16 lg:grid-cols-2 lg:items-center">
           {/* Left — Text */}
           <div
-            className={`transition-all duration-700 ${
-              isVisible ? "translate-x-0 opacity-100" : "-translate-x-12 opacity-0"
-            }`}
+            className={`transition-all duration-700 ${isVisible ? "translate-x-0 opacity-100" : "-translate-x-12 opacity-0"
+              }`}
           >
             <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-golden/20 bg-golden/10 px-4 py-1.5">
               <Heart className="h-3.5 w-3.5 text-golden" />
@@ -684,9 +676,8 @@ function AboutSection() {
 
           {/* Right — Feature Cards */}
           <div
-            className={`grid gap-4 sm:grid-cols-2 transition-all duration-700 delay-300 ${
-              isVisible ? "translate-x-0 opacity-100" : "translate-x-12 opacity-0"
-            }`}
+            className={`grid gap-4 sm:grid-cols-2 transition-all duration-700 delay-300 ${isVisible ? "translate-x-0 opacity-100" : "translate-x-12 opacity-0"
+              }`}
           >
             {features.map((feature, i) => (
               <div
@@ -726,9 +717,8 @@ function TestimonialsSection() {
       <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div
-          className={`mx-auto max-w-2xl text-center transition-all duration-700 ${
-            isVisible ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"
-          }`}
+          className={`mx-auto max-w-2xl text-center transition-all duration-700 ${isVisible ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"
+            }`}
         >
           <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-golden/20 bg-golden/10 px-4 py-1.5">
             <Star className="h-3.5 w-3.5 text-golden" />
@@ -749,11 +739,10 @@ function TestimonialsSection() {
           {TESTIMONIALS.map((testimonial, i) => (
             <div
               key={testimonial.name}
-              className={`group rounded-2xl border border-cream/5 bg-charcoal-light/40 p-6 backdrop-blur-sm transition-all duration-500 hover:border-golden/15 hover:shadow-xl hover:shadow-golden/5 ${
-                isVisible
+              className={`group rounded-2xl border border-cream/5 bg-charcoal-light/40 p-6 backdrop-blur-sm transition-all duration-500 hover:border-golden/15 hover:shadow-xl hover:shadow-golden/5 ${isVisible
                   ? "translate-y-0 opacity-100"
                   : "translate-y-12 opacity-0"
-              }`}
+                }`}
               style={{ transitionDelay: isVisible ? `${200 + i * 100}ms` : "0ms" }}
             >
               {/* Stars */}
@@ -792,9 +781,8 @@ function TestimonialsSection() {
 
         {/* Instagram Banner */}
         <div
-          className={`mt-16 overflow-hidden rounded-2xl border border-cream/5 bg-gradient-to-r from-charcoal-light via-charcoal-lighter/50 to-charcoal-light p-8 sm:p-12 transition-all duration-700 delay-500 ${
-            isVisible ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"
-          }`}
+          className={`mt-16 overflow-hidden rounded-2xl border border-cream/5 bg-gradient-to-r from-charcoal-light via-charcoal-lighter/50 to-charcoal-light p-8 sm:p-12 transition-all duration-700 delay-500 ${isVisible ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"
+            }`}
         >
           <div className="flex flex-col items-center gap-6 text-center sm:flex-row sm:text-left">
             <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-[#E1306C] via-[#F77737] to-[#FCAF45] shadow-lg">
@@ -840,9 +828,8 @@ function Footer() {
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-golden/5 via-transparent to-transparent" />
 
         <div
-          className={`relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 transition-all duration-700 ${
-            isVisible ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"
-          }`}
+          className={`relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 transition-all duration-700 ${isVisible ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"
+            }`}
         >
           {/* CTA Banner */}
           <div className="mx-auto max-w-3xl text-center">
