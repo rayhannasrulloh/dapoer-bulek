@@ -18,6 +18,7 @@ Premium single-page restaurant & catering landing page for **Dapoer Bulek** — 
 | **About Us** | Brand story with 4 feature cards — Higienis & Bersih, Bahan Premium, Presentasi Cantik, Tepat Waktu |
 | **Testimonials** | 6 customer review cards with 5-star ratings + Instagram banner |
 | **Footer / Contact** | Operational info (H-3/H-2 lead times), location, WhatsApp contact, and social links |
+| **Watermark Generator** | Core photo utility at `/wm-gen` with drag-and-drop support, HTML5 canvas processing, auto-scaling centered watermark (`dapoerbulek_354`), and quick download |
 
 ### Key Highlights
 
