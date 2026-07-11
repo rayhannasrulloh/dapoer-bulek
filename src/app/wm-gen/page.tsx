@@ -52,18 +52,18 @@ export default function WatermarkGenerator() {
 
         // Watermark configurations
         const text = "dapoerbulek_354";
-        
+
         // Dynamically size the font relative to image width
         const fontSize = Math.max(18, img.width / 15);
-        
+
         // Use a clean Sans-Serif font for the watermark
         ctx.font = `bold ${fontSize}px sans-serif`;
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
 
-        // Draw watermark with 50% opacity
-        ctx.fillStyle = "rgba(250, 250, 249, 0.5)"; // Soft Off-White/Cream at 0.5 alpha
-        
+        // Draw watermark with 40% opacity
+        ctx.fillStyle = "rgba(250, 250, 249, 0.4)"; // Soft Off-White/Cream at 0.4 alpha
+
         // Center of the image
         const x = img.width / 2;
         const y = img.height / 2;
@@ -92,7 +92,7 @@ export default function WatermarkGenerator() {
   const handleDrop = (e: DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     setIsDragging(false);
-    
+
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       processFile(e.dataTransfer.files[0]);
     }
@@ -146,7 +146,7 @@ export default function WatermarkGenerator() {
             <ArrowLeft className="h-4 w-4" />
             Kembali ke Landing Page
           </Link>
-          
+
           <div className="flex items-center gap-2">
             <span className="font-[var(--font-playfair)] text-lg font-bold tracking-wide">
               Dapoer <span className="text-golden">Bulek</span>
@@ -157,7 +157,7 @@ export default function WatermarkGenerator() {
 
       {/* Main Content Container */}
       <div className="mx-auto max-w-4xl px-4 pt-12 sm:px-6 lg:px-8">
-        
+
         {/* Title Area */}
         <div className="text-center mb-12">
           <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-golden/10 px-4 py-1.5">
@@ -184,11 +184,10 @@ export default function WatermarkGenerator() {
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
             onClick={triggerFileInput}
-            className={`cursor-pointer rounded-3xl p-12 transition-all duration-300 flex flex-col items-center justify-center min-h-[350px] text-center ${
-              isDragging
-                ? "bg-golden/10 text-golden"
-                : "bg-charcoal-light/50 hover:bg-charcoal-light/80 text-cream/70"
-            }`}
+            className={`cursor-pointer rounded-3xl p-12 transition-all duration-300 flex flex-col items-center justify-center min-h-[350px] text-center ${isDragging
+              ? "bg-golden/10 text-golden"
+              : "bg-charcoal-light/50 hover:bg-charcoal-light/80 text-cream/70"
+              }`}
           >
             <input
               type="file"
@@ -197,7 +196,7 @@ export default function WatermarkGenerator() {
               accept="image/png, image/jpeg, image/jpg"
               className="hidden"
             />
-            
+
             {isProcessing ? (
               <div className="flex flex-col items-center gap-4">
                 <div className="h-12 w-12 rounded-full bg-golden/10 flex items-center justify-center animate-spin">
@@ -239,7 +238,7 @@ export default function WatermarkGenerator() {
                   </span>
                 )}
               </div>
-              
+
               {/* Image Preview Container */}
               <div className="relative max-h-[500px] w-full overflow-hidden rounded-2xl bg-charcoal flex items-center justify-center">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -260,7 +259,7 @@ export default function WatermarkGenerator() {
                 <Download className="h-5 w-5" />
                 Download Gambar Berwatermark
               </button>
-              
+
               <button
                 onClick={handleReset}
                 className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-full bg-cream/5 px-8 py-4 text-base font-semibold text-cream transition-all duration-300 hover:bg-cream/10 hover:text-golden"
