@@ -49,6 +49,7 @@ const NAV_LINKS = [
   { label: "Menu", href: "#menu" },
   { label: "Tentang Kami", href: "#about" },
   { label: "Testimoni", href: "#testimonials" },
+  { label: "Lokasi", href: "#location" },
   { label: "Kontak", href: "#contact" },
 ];
 
@@ -812,6 +813,63 @@ function TestimonialsSection() {
   );
 }
 
+/* ─────────────────── LOCATION ─────────────────── */
+
+function LocationSection() {
+  const { ref, isVisible } = useInView(0.1);
+
+  return (
+    <section id="location" ref={ref} className="relative py-24 sm:py-32">
+      {/* Background */}
+      <div className="absolute inset-0 bg-charcoal" />
+      <div className="absolute left-1/2 top-0 h-px w-3/4 -translate-x-1/2 bg-gradient-to-r from-transparent via-golden/20 to-transparent" />
+
+      <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        {/* Header */}
+        <div
+          className={`mx-auto max-w-2xl text-center transition-all duration-700 ${
+            isVisible ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"
+          }`}
+        >
+          <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-golden/10 px-4 py-1.5">
+            <MapPin className="h-3.5 w-3.5 text-golden" />
+            <span className="text-xs font-semibold tracking-wider text-golden uppercase">
+              Lokasi Kami
+            </span>
+          </div>
+          <h2 className="font-[var(--font-playfair)] text-3xl font-bold text-cream sm:text-4xl lg:text-5xl">
+            Temukan <span className="text-golden">Dapoer Bulek</span>
+          </h2>
+          <p className="mt-4 text-base text-cream/60 sm:text-lg">
+            Dayamurni, Tumijajar, Tulang Bawang Barat, Lampung
+          </p>
+        </div>
+
+        {/* Map Embed */}
+        <div
+          className={`mt-12 overflow-hidden rounded-2xl border border-cream/10 bg-charcoal-light/50 p-2 sm:p-3 transition-all duration-700 delay-200 ${
+            isVisible ? "translate-y-0 opacity-100" : "translate-y-12 opacity-0"
+          }`}
+        >
+          <div className="overflow-hidden rounded-xl">
+            <iframe
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d591.1478642283023!2d105.07461774540799!3d-4.6381027255981!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e3f4bcf1b7cf029%3A0xe61adf6a032d5bcf!2sDapoer%20Bule'!5e0!3m2!1sen!2sid!4v1793774700609!5m2!1sen!2sid"
+              width="600"
+              height="450"
+              style={{ border: 0 }}
+              allowFullScreen
+              loading="lazy"
+              referrerPolicy="strict-origin-when-cross-origin"
+              title="Lokasi Dapoer Bulek di Google Maps"
+              className="h-[350px] w-full sm:h-[450px]"
+            />
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 /* ─────────────────── FOOTER / CONTACT ─────────────────── */
 
 function Footer() {
@@ -987,6 +1045,7 @@ export default function Home() {
       <MenuCatalog />
       <AboutSection />
       <TestimonialsSection />
+      <LocationSection />
       <Footer />
     </>
   );
