@@ -5,21 +5,22 @@ import "./globals.css";
 const playfair = Playfair_Display({
   variable: "--font-playfair",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800", "900"],
+  weight: ["600", "700"],
   display: "swap",
 });
 
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700"],
+  weight: ["400", "500", "600", "700"],
   display: "swap",
 });
 
 export const metadata: Metadata = {
-  title: "Dapoer Bulek — Sajian Istimewa untuk Momen Berharga Anda",
+  metadataBase: new URL("https://www.dapoerbulek.web.id"),
+  title: "Dapoer Bulek | Catering Tumpeng, Nasi Liwet & Kue di Tumijajar",
   description:
-    "Dapoer Bulek melayani pemesanan Tumpeng, Nasi Liwet, Pudding Cake, dan Jajanan Pasar premium untuk wilayah Dayamurni, Tumijajar, Tulang Bawang Barat, Lampung. Pesan sekarang via WhatsApp!",
+    "Dapoer Bulek melayani pemesanan Pre-Order Tumpeng, Nasi Liwet Sunda, Ayam Ingkung, Nasi Kotak, Pudding Cake, dan Jajanan Pasar di Dayamurni, Tumijajar, Tulang Bawang Barat, Lampung sejak 2019.",
   keywords: [
     "Dapoer Bulek",
     "Tumpeng Tulang Bawang Barat",
@@ -30,10 +31,10 @@ export const metadata: Metadata = {
     "Catering Dayamurni",
   ],
   openGraph: {
-    title: "Dapoer Bulek — Sajian Istimewa untuk Momen Berharga Anda",
+    title: "Dapoer Bulek | Catering Tumpeng, Nasi Liwet & Kue di Tumijajar",
     description:
-      "Melayani pemesanan Tumpeng, Nasi Liwet, Pudding Cake & Jajanan Pasar premium sejak 2019.",
-    url: "https://dapoerbulek.web.id",
+      "Melayani Pre-Order Tumpeng, Nasi Liwet, Pudding Cake, dan Jajanan Pasar di Dayamurni, Tumijajar sejak 2019.",
+    url: "https://www.dapoerbulek.web.id/",
     siteName: "Dapoer Bulek",
     locale: "id_ID",
     type: "website",

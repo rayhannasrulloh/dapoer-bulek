@@ -1,29 +1,10 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
-import {
-  Menu,
-  X,
-  ChevronDown,
-  Phone,
-  MapPin,
-  Clock,
-  Star,
-  ArrowRight,
-  Sparkles,
-  UtensilsCrossed,
-  Award,
-  Heart,
-  Users,
-  MessageCircle,
-  CalendarCheck,
-  ShieldCheck,
-  Leaf,
-} from "lucide-react";
+import { Menu, MessageCircle, MapPin, Phone, X } from "lucide-react";
 
-/* Custom Instagram SVG icon (lucide-react removed brand icons) */
-function Instagram({ className }: { className?: string }) {
+function InstagramIcon({ className }: { className?: string }) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -33,6 +14,7 @@ function Instagram({ className }: { className?: string }) {
       strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
+      aria-hidden="true"
       className={className}
     >
       <rect width="20" height="20" x="2" y="2" rx="5" ry="5" />
@@ -42,14 +24,11 @@ function Instagram({ className }: { className?: string }) {
   );
 }
 
-/* ─────────────────────────── DATA ─────────────────────────── */
-
 const NAV_LINKS = [
-  { label: "Home", href: "#home" },
   { label: "Menu", href: "#menu" },
-  { label: "Tentang Kami", href: "#about" },
-  { label: "Testimoni", href: "#testimonials" },
-  { label: "Lokasi", href: "#location" },
+  { label: "Tentang Dapur", href: "#about" },
+  { label: "Galeri", href: "#galeri" },
+  { label: "Pre-Order & Lokasi", href: "#preorder" },
   { label: "Kontak", href: "#contact" },
 ];
 
@@ -64,637 +43,683 @@ const CATEGORIES: Category[] = [
 
 interface MenuItem {
   name: string;
-  category: Category;
-  tag: string;
+  category: Exclude<Category, "Semua">;
+  portionInfo: string;
+  leadTime: string;
   description: string;
   image: string;
+  featured?: boolean;
 }
 
 const MENU_ITEMS: MenuItem[] = [
   {
-    name: "Tumpeng Nasi Kuning Premium",
+    name: "Tumpeng Nasi Kuning",
     category: "Tumpeng & Nasi",
-    tag: "Porsi 10-15 Orang",
+    portionInfo: "Porsi 10-15 orang",
+    leadTime: "Pre-Order min. H-3",
     description:
-      "Nasi kuning berbentuk tumpeng kerucut dengan lauk lengkap: ayam goreng, telur balado, perkedel, urap sayur, dan sambal.",
+      "Nasi kuning pulen berbentuk kerucut dengan lauk lengkap: ayam goreng bumbu kuning, telur balado, perkedel kentang, tempe orek, urap sayur, dan sambal terasi.",
     image: "/images/tumpeng-nasi-kuning.png",
+    featured: true,
   },
   {
     name: "Nasi Liwet Sunda",
     category: "Tumpeng & Nasi",
-    tag: "Terlaris",
+    portionInfo: "Sajian kelompok atau keluarga",
+    leadTime: "Pre-Order min. H-2",
     description:
-      "Nasi liwet pulen khas Sunda dengan ikan teri, labu siam, dan sambal terasi, disajikan di atas daun pisang.",
+      "Nasi liwet gurih dengan ikan teri, daun salam, serai, lauk pendamping, dan sambal, ditata di atas alas daun pisang.",
     image: "/images/nasi-liwet-sunda.png",
   },
   {
     name: "Ayam Ingkung Bakar",
     category: "Tumpeng & Nasi",
-    tag: "Spesial",
+    portionInfo: "1 ekor ayam kampung utuh",
+    leadTime: "Pre-Order min. H-2",
     description:
-      "Ayam kampung utuh dimasak ingkung dengan rempah tradisional lalu dibakar hingga kecokelatan, disajikan untuk acara syukuran.",
+      "Ayam kampung utuh dimasak ungkep dengan rempah tradisional lalu dibakar hingga kecokelatan untuk acara syukuran dan kenduri.",
     image: "/images/ayam-ingkung.png",
   },
   {
     name: "Nasi Kotak Acara",
     category: "Tumpeng & Nasi",
-    tag: "Min. 20 Box",
+    portionInfo: "Minimal 20 kotak",
+    leadTime: "Pre-Order min. H-2",
     description:
-      "Paket nasi kotak lengkap untuk acara: nasi putih/kuning, ayam goreng, telur, sayur, kerupuk, dan buah.",
+      "Paket nasi kotak praktis berisi nasi putih atau kuning, lauk ayam goreng, telur, sayur tumis, kerupuk, dan buah potong.",
     image: "/images/nasi-kotak.png",
   },
   {
     name: "Tumpeng Pudding Cake",
     category: "Sweet & Desserts",
-    tag: "Best Seller",
+    portionInfo: "Diameter loyang menyesuaikan",
+    leadTime: "Pre-Order min. H-2",
     description:
-      "Pudding berbentuk tumpeng dengan lapisan warna-warni cantik, cocok sebagai pengganti kue tart untuk acara spesial.",
+      "Pudding berlapis berbentuk tumpeng dengan pilihan rasa dan warna yang dapat disesuaikan untuk selamatan maupun kejutan ulang tahun.",
     image: "/images/pudding-tumpeng.png",
   },
   {
     name: "Pudding Cake Birthday",
     category: "Sweet & Desserts",
-    tag: "Custom Design",
+    portionInfo: "Desain & ucapan custom",
+    leadTime: "Pre-Order min. H-2",
     description:
-      "Pudding cake ulang tahun dengan desain custom, pilihan rasa beragam dan dekorasi cantik sesuai tema.",
+      "Pudding ulang tahun dengan kombinasi vla dan dekorasi buah atau karakter sesuai permintaan tema acara.",
     image: "/images/pudding-birthday.png",
   },
   {
     name: "Pie Buah Segar",
     category: "Sweet & Desserts",
-    tag: "Favorit",
+    portionInfo: "Isi per kotak menyesuaikan",
+    leadTime: "Pre-Order min. H-2",
     description:
-      "Pie dengan kulit renyah berisi vla lembut ditata rapi dengan buah-buahan segar pilihan, glazur mengkilap.",
+      "Kulit pie renyah dengan isian vla vanila lembut dan potongan buah segar di atasnya, cocok untuk hantaran maupun suguhan tamu.",
     image: "/images/pie-buah.png",
   },
   {
     name: "Tumpeng Buah",
     category: "Sweet & Desserts",
-    tag: "Unik & Sehat",
+    portionInfo: "Rangkaian buah segar utuh",
+    leadTime: "Pre-Order min. H-3",
     description:
-      "Rangkaian buah segar premium ditata membentuk tumpeng cantik, pilihan sehat untuk acara dan hantaran.",
+      "Susunan aneka buah potong segar berbentuk tumpeng sebagai alternatif hantaran atau sajian penutup acara keluarga.",
     image: "/images/tumpeng-buah.png",
   },
   {
-    name: "Aneka Kue Tradisional (Snack Box)",
+    name: "Snack Box Jajanan Pasar",
     category: "Jajanan Pasar",
-    tag: "Min. 15 Box",
+    portionInfo: "Minimal 15 kotak",
+    leadTime: "Pre-Order min. H-2",
     description:
-      "Paket snack box berisi aneka kue tradisional: klepon, onde-onde, kue lapis, dadar gulung, lemper, dan risoles.",
+      "Isian kue basah dan gurih pilihan seperti klepon, onde-onde, kue lapis, dadar gulung, lemper, dan risoles untuk rapat atau pengajian.",
     image: "/images/snack-box.png",
   },
 ];
 
-const TESTIMONIALS = [
+const KITCHEN_STANDARDS = [
   {
-    name: "Ibu Sari",
-    location: "Tumijajar",
-    rating: 5,
-    text: "Tumpengnya cantik banget dan rasanya autentik! Tamu-tamu acara syukuran semua memuji. Pasti pesan lagi.",
+    step: "01",
+    title: "Dimasak Mendekati Jam Acara",
+    detail:
+      "Pesanan diproses berdasarkan sistem Pre-Order agar nasi, lauk, dan kue basah tiba dalam kondisi segar.",
   },
   {
-    name: "Bapak Rendi",
-    location: "Dayamurni",
-    rating: 5,
-    text: "Nasi liwet Sunda-nya juara! Rasa liwetnya berasa banget. Sudah 3 kali pesan untuk acara kantor.",
+    step: "02",
+    title: "Bahan Pasar Harian",
+    detail:
+      "Ayam kampung, santan, rempah dapur, dan buah dipilih segar menyesuaikan jumlah porsi yang dipesan.",
   },
   {
-    name: "Mbak Fitri",
-    location: "Tulang Bawang Barat",
-    rating: 5,
-    text: "Pudding Cake Birthday-nya bikin anak saya senang! Desainnya lucu dan rasanya enak. Terima kasih Dapoer Bulek!",
+    step: "03",
+    title: "Penataan Rapi Siap Saji",
+    detail:
+      "Tumpeng, nasi liwet daun pisang, hingga kotak hantaran disusun rapi agar langsung siap dihidangkan di meja acara.",
   },
   {
-    name: "Ibu Dewi",
-    location: "Tumijajar",
-    rating: 5,
-    text: "Snack box untuk rapat kantor selalu rapih dan enak. Pengiriman tepat waktu. Sangat recommended!",
+    step: "04",
+    title: "Jadwal Ambil atau Antar Jelas",
+    detail:
+      "Jam pengambilan di Dayamurni maupun pengantaran area Tumijajar disepakati langsung saat konfirmasi WhatsApp.",
+  },
+];
+
+const GALLERY_HIGHLIGHTS = [
+  {
+    src: "/images/nasi-liwet-sunda.png",
+    alt: "Sajian Nasi Liwet Sunda beralas daun pisang dari Dapoer Bulek",
+    caption: "Nasi Liwet Sunda beralas daun pisang",
   },
   {
-    name: "Pak Agus",
-    location: "Dayamurni",
-    rating: 5,
-    text: "Pie buahnya segar dan cantik! Cocok banget untuk hantaran. Keluarga mertua sangat suka.",
+    src: "/images/pudding-tumpeng.png",
+    alt: "Tumpeng Pudding Cake berlapis dengan hiasan buah segar",
+    caption: "Tumpeng Pudding Cake untuk acara keluarga",
   },
   {
-    name: "Mbak Rina",
-    location: "Gunung Terang",
-    rating: 5,
-    text: "Ayam Ingkung Bakar untuk acara tujuh bulanan luar biasa! Rempahnya meresap sempurna. The best!",
+    src: "/images/snack-box.png",
+    alt: "Snack Box berisi aneka kue tradisional klepon, lemper, dan risoles",
+    caption: "Snack Box jajanan pasar untuk rapat & pengajian",
   },
 ];
 
 const WHATSAPP_NUMBER = "6282193562480";
+const INSTAGRAM_URL = "https://www.instagram.com/dapoerbule_354/";
+const MAPS_URL =
+  "https://www.google.com/maps/search/?api=1&query=Dapoer+Bulek+Dayamurni+Tumijajar+Tulang+Bawang+Barat+Lampung";
 
-function getWhatsAppLink(menuName: string): string {
-  const text = `Halo Dapoer Bulek, saya tertarik memesan ${menuName}`;
+function getWhatsAppMenuLink(menuName: string): string {
+  const text = `Halo Dapoer Bulek, saya ingin menanyakan harga, porsi, dan jadwal Pre-Order untuk ${menuName}.`;
   return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(text)}`;
 }
 
-function getWhatsAppGeneral(): string {
-  const text = "Halo Dapoer Bulek, saya ingin bertanya tentang menu dan pemesanan.";
+function getWhatsAppGeneralLink(): string {
+  const text =
+    "Halo Dapoer Bulek, saya ingin berkonsultasi mengenai menu dan pemesanan catering.";
   return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(text)}`;
 }
-
-/* ──────────────────── INTERSECTION OBSERVER HOOK ──────────────────── */
-
-function useInView(threshold = 0.15) {
-  const ref = useRef<HTMLDivElement>(null);
-  const [isVisible, setIsVisible] = useState(false);
-
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsVisible(true);
-          observer.unobserve(el);
-        }
-      },
-      { threshold }
-    );
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, [threshold]);
-
-  return { ref, isVisible };
-}
-
-/* ─────────────────────────── NAVBAR ─────────────────────────── */
 
 function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const toggleRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 20);
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
+    const onScroll = () => setScrolled(window.scrollY > 16);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  useEffect(() => {
+    if (!mobileOpen) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setMobileOpen(false);
+        toggleRef.current?.focus();
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [mobileOpen]);
+
   return (
-    <nav
-      id="navbar"
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${scrolled
-          ? "bg-charcoal/95 backdrop-blur-xl"
-          : "bg-transparent"
-        }`}
+    <header
+      className={`fixed top-0 left-0 right-0 z-50 border-b transition-colors duration-200 ${
+        scrolled
+          ? "border-charcoal-border bg-charcoal/95 backdrop-blur-md"
+          : "border-transparent bg-charcoal/90"
+      }`}
     >
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="flex h-20 items-center justify-between">
-          {/* Brand */}
+        <div className="flex h-16 items-center justify-between gap-4 sm:h-20">
           <a
             href="#home"
-            className="group flex items-center gap-3"
+            className="inline-flex min-h-[44px] items-center gap-3 rounded-md pr-2 text-cream transition-colors hover:text-golden"
           >
-            <img
+            <Image
               src="/logo/logo.png"
-              alt="Logo"
-              className="h-10 w-10 rounded-full"
+              alt="Logo Dapoer Bulek"
+              width={40}
+              height={40}
+              className="h-10 w-10 shrink-0 rounded-full object-contain"
+              priority
             />
-            <span className="font-[var(--font-playfair)] text-xl font-bold tracking-wide text-cream">
+            <span className="font-serif text-lg font-bold tracking-tight text-cream sm:text-xl">
               Dapoer <span className="text-golden">Bulek</span>
             </span>
           </a>
 
-          {/* Desktop Links */}
-          <div className="hidden items-center gap-1 md:flex">
+          <nav aria-label="Navigasi utama" className="hidden items-center gap-1 lg:flex">
             {NAV_LINKS.map((link) => (
               <a
                 key={link.href}
                 href={link.href}
-                className="relative px-4 py-2 text-sm font-medium text-cream/70 transition-colors duration-300 hover:text-golden after:absolute after:bottom-0 after:left-1/2 after:h-0.5 after:w-0 after:-translate-x-1/2 after:rounded-full after:bg-golden after:transition-all after:duration-300 hover:after:w-6"
+                className="inline-flex min-h-[44px] items-center rounded-md px-3.5 text-sm font-medium text-ink-light-secondary transition-colors hover:text-golden"
               >
                 {link.label}
               </a>
             ))}
             <a
-              href={getWhatsAppGeneral()}
+              href={getWhatsAppGeneralLink()}
               target="_blank"
               rel="noopener noreferrer"
-              className="ml-4 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-golden to-golden-dark px-5 py-2.5 text-sm font-semibold text-charcoal transition-all duration-300 hover:scale-105"
+              className="ml-3 inline-flex min-h-[44px] items-center gap-2 rounded-full bg-golden px-5 py-2.5 text-sm font-semibold text-charcoal transition-colors hover:bg-golden-dark active:bg-golden-dark"
             >
-              <Phone className="h-4 w-4" />
-              Hubungi Kami
+              <Phone className="h-4 w-4" aria-hidden="true" />
+              Pesan WhatsApp
             </a>
-          </div>
+          </nav>
 
-          {/* Mobile Toggle */}
           <button
-            onClick={() => setMobileOpen(!mobileOpen)}
-            className="flex h-10 w-10 items-center justify-center rounded-lg text-cream transition-colors hover:text-golden md:hidden"
-            aria-label="Toggle menu"
+            ref={toggleRef}
+            type="button"
+            onClick={() => setMobileOpen((prev) => !prev)}
+            aria-expanded={mobileOpen}
+            aria-controls="mobile-nav"
+            aria-label={mobileOpen ? "Tutup menu navigasi" : "Buka menu navigasi"}
+            className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center gap-2 rounded-md border border-charcoal-border bg-charcoal-surface px-3.5 text-sm font-medium text-cream transition-colors hover:border-golden hover:text-golden lg:hidden"
           >
-            {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            {mobileOpen ? (
+              <>
+                <X className="h-4 w-4" aria-hidden="true" />
+                <span>Tutup</span>
+              </>
+            ) : (
+              <>
+                <Menu className="h-4 w-4" aria-hidden="true" />
+                <span>Menu</span>
+              </>
+            )}
           </button>
         </div>
       </div>
 
-      {/* Mobile Menu */}
-      <div
-        className={`overflow-hidden transition-all duration-500 md:hidden ${mobileOpen ? "max-h-[400px] opacity-100" : "max-h-0 opacity-0"
-          }`}
-      >
-        <div className="bg-charcoal/98 backdrop-blur-xl px-4 pb-6 pt-4">
-          {NAV_LINKS.map((link) => (
-            <a
-              key={link.href}
-              href={link.href}
-              onClick={() => setMobileOpen(false)}
-              className="block rounded-lg px-4 py-3 text-base font-medium text-cream/70 transition-colors hover:bg-cream/5 hover:text-golden"
-            >
-              {link.label}
-            </a>
-          ))}
+      {mobileOpen && (
+        <nav
+          id="mobile-nav"
+          aria-label="Navigasi seluler"
+          className="border-t border-charcoal-border bg-charcoal px-4 pb-6 pt-3 lg:hidden"
+        >
+          <div className="flex flex-col gap-1">
+            {NAV_LINKS.map((link) => (
+              <a
+                key={link.href}
+                href={link.href}
+                onClick={() => setMobileOpen(false)}
+                className="flex min-h-[44px] items-center rounded-md px-3 text-base font-medium text-ink-light-secondary transition-colors hover:bg-charcoal-surface hover:text-golden"
+              >
+                {link.label}
+              </a>
+            ))}
+          </div>
           <a
-            href={getWhatsAppGeneral()}
+            href={getWhatsAppGeneralLink()}
             target="_blank"
             rel="noopener noreferrer"
-            className="mt-4 flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-golden to-golden-dark px-5 py-3 text-base font-semibold text-charcoal"
+            onClick={() => setMobileOpen(false)}
+            className="mt-4 flex min-h-[48px] w-full items-center justify-center gap-2 rounded-full bg-golden px-5 py-3 text-base font-semibold text-charcoal transition-colors hover:bg-golden-dark"
           >
-            <Phone className="h-4 w-4" />
-            Hubungi Kami
+            <Phone className="h-4 w-4" aria-hidden="true" />
+            Pesan via WhatsApp
           </a>
-        </div>
-      </div>
-    </nav>
+        </nav>
+      )}
+    </header>
   );
 }
 
-/* ─────────────────────────── HERO ─────────────────────────── */
-
-function Hero() {
-  const { ref, isVisible } = useInView(0.1);
-
+function HeroSection() {
   return (
     <section
       id="home"
-      ref={ref}
-      className="relative min-h-screen overflow-hidden"
+      className="bg-charcoal pb-14 pt-24 text-cream sm:pb-20 sm:pt-28 lg:pb-24 lg:pt-32"
     >
-      {/* Background Image */}
-      <div className="absolute inset-0">
-        <Image
-          src="/images/hero-bg.png"
-          alt="Dapoer Bulek catering"
-          fill
-          sizes="100vw"
-          className="object-cover"
-          priority
-        />
-        {/* Overlay gradients */}
-        <div className="absolute inset-0 bg-gradient-to-r from-charcoal/95 via-charcoal/80 to-charcoal/60" />
-        <div className="absolute inset-0 bg-gradient-to-t from-charcoal via-transparent to-charcoal/50" />
-      </div>
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="grid items-center gap-10 lg:grid-cols-12 lg:gap-12">
+          <div className="lg:col-span-7">
+            <p className="text-sm font-semibold text-golden">
+              Dapur Rumahan di Dayamurni, Tumijajar sejak 2019
+            </p>
+            <div className="mt-3 h-0.5 w-14 bg-golden" aria-hidden="true" />
 
-      {/* Decorative elements */}
-      <div className="absolute right-0 top-1/4 h-96 w-96 rounded-full bg-golden/5 blur-[120px]" />
-      <div className="absolute -left-20 bottom-1/4 h-72 w-72 rounded-full bg-golden/8 blur-[100px]" />
+            <h1 className="mt-6 font-serif text-[clamp(2.125rem,4.5vw,3.625rem)] font-bold leading-[1.12] tracking-tight text-cream">
+              Sajian Nusantara untuk Momen Keluarga dan Acara Anda
+            </h1>
 
-      {/* Content */}
-      <div className="relative mx-auto flex min-h-screen max-w-7xl flex-col items-start justify-center px-4 sm:px-6 lg:px-8">
-        <div className="max-w-2xl">
-          {/* Badge */}
-          <div
-            className={`mb-6 inline-flex items-center gap-2 rounded-full bg-golden/10 px-4 py-2 backdrop-blur-sm transition-all duration-700 ${isVisible
-              ? "translate-y-0 opacity-100"
-              : "translate-y-8 opacity-0"
-              }`}
-          >
-            <span className="text-sm font-medium text-golden">
-              Dipercaya Sejak 2019
-            </span>
-          </div>
+            <p className="mt-5 max-w-xl text-base leading-relaxed text-ink-light-secondary sm:text-lg">
+              Melayani pemesanan Pre-Order Tumpeng Nasi Kuning, Nasi Liwet Sunda,
+              Ayam Ingkung Bakar, Nasi Kotak, Pudding Cake, dan Snack Box
+              Jajanan Pasar untuk wilayah Tumijajar dan Tulang Bawang Barat.
+            </p>
 
-          {/* Headline */}
-          <h1
-            className={`font-[var(--font-playfair)] text-4xl font-bold leading-tight tracking-tight text-cream sm:text-5xl lg:text-6xl transition-all duration-700 delay-150 ${isVisible
-                ? "translate-y-0 opacity-100"
-                : "translate-y-8 opacity-0"
-              }`}
-          >
-            Sajian{" "}
-            <span className="relative">
-              <span className="bg-gradient-to-r from-golden via-golden-light to-golden bg-clip-text text-transparent">
-                Istimewa
-              </span>
-              <span className="absolute -bottom-1 left-0 h-1 w-full rounded-full bg-gradient-to-r from-golden to-golden-dark opacity-50" />
-            </span>{" "}
-            untuk Momen Berharga Anda
-          </h1>
+            <div className="mt-8 flex flex-wrap items-center gap-3">
+              <a
+                href="#menu"
+                className="inline-flex min-h-[48px] items-center justify-center rounded-full bg-golden px-7 py-3 text-base font-semibold text-charcoal transition-colors hover:bg-golden-dark active:bg-golden-dark"
+              >
+                Lihat Daftar Menu
+              </a>
+              <a
+                href={getWhatsAppGeneralLink()}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex min-h-[48px] items-center justify-center gap-2 rounded-full border border-charcoal-border bg-charcoal-surface px-6 py-3 text-base font-semibold text-cream transition-colors hover:border-golden hover:text-golden"
+              >
+                <MessageCircle className="h-5 w-5" aria-hidden="true" />
+                Konsultasi WhatsApp
+              </a>
+            </div>
 
-          {/* Subheadline */}
-          <p
-            className={`mt-6 max-w-lg text-lg leading-relaxed text-cream/70 transition-all duration-700 delay-300 ${isVisible
-                ? "translate-y-0 opacity-100"
-                : "translate-y-8 opacity-0"
-              }`}
-          >
-            Melayani pemesanan{" "}
-            <span className="font-semibold text-cream">Tumpeng</span>,{" "}
-            <span className="font-semibold text-cream">Nasi Liwet</span>,{" "}
-            <span className="font-semibold text-cream">Pudding Cake</span>, dan{" "}
-            <span className="font-semibold text-cream">Jajanan Pasar</span>{" "}
-            premium untuk wilayah Dayamurni, Tumijajar, dan sekitarnya.
-          </p>
-
-          {/* CTAs */}
-          <div
-            className={`mt-10 flex flex-wrap items-center gap-4 transition-all duration-700 delay-[450ms] ${isVisible
-                ? "translate-y-0 opacity-100"
-                : "translate-y-8 opacity-0"
-              }`}
-          >
-            <a
-              href="#menu"
-              className="group inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-golden to-golden-dark px-7 py-4 text-base font-semibold text-charcoal transition-all duration-300 hover:scale-105"
-            >
-              Lihat Menu & Pesan
-              <ArrowRight className="h-5 w-5 transition-transform duration-300 group-hover:translate-x-1" />
-            </a>
-            <a
-              href={getWhatsAppGeneral()}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 rounded-full bg-cream/5 px-7 py-4 text-base font-semibold text-cream backdrop-blur-sm transition-all duration-300 hover:bg-golden/10 hover:text-golden"
-            >
-              <MessageCircle className="h-5 w-5" />
-              Chat WhatsApp
-            </a>
-          </div>
-
-          {/* Stats */}
-          <div
-            className={`mt-16 flex items-center gap-8 sm:gap-12 transition-all duration-700 delay-[600ms] ${isVisible
-                ? "translate-y-0 opacity-100"
-                : "translate-y-8 opacity-0"
-              }`}
-          >
-            {[
-              { value: "6+", label: "Tahun Melayani" },
-              { value: "500+", label: "Pesanan" },
-              { value: "100%", label: "Kepuasan" },
-            ].map((stat) => (
-              <div key={stat.label} className="text-center">
-                <div className="font-[var(--font-playfair)] text-2xl font-bold text-golden sm:text-3xl">
-                  {stat.value}
-                </div>
-                <div className="mt-1 text-xs font-medium text-cream/50 sm:text-sm">
-                  {stat.label}
-                </div>
+            <dl className="mt-10 grid grid-cols-1 gap-4 border-t border-charcoal-border pt-6 sm:grid-cols-3 sm:gap-6">
+              <div>
+                <dt className="text-xs font-medium text-ink-light-muted">
+                  Sistem Pemesanan
+                </dt>
+                <dd className="mt-1 text-sm font-semibold text-cream">
+                  Pre-Order H-2 dan H-3
+                </dd>
               </div>
-            ))}
+              <div>
+                <dt className="text-xs font-medium text-ink-light-muted">
+                  Area Layanan
+                </dt>
+                <dd className="mt-1 text-sm font-semibold text-cream">
+                  Tumijajar &amp; Tulang Bawang Barat
+                </dd>
+              </div>
+              <div>
+                <dt className="text-xs font-medium text-ink-light-muted">
+                  Dokumentasi Menu
+                </dt>
+                <dd className="mt-0.5 text-sm font-semibold text-cream">
+                  <a
+                    href={INSTAGRAM_URL}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="-my-2 inline-flex min-h-[44px] items-center text-golden underline-offset-4 hover:underline"
+                  >
+                    @dapoerbule_354
+                  </a>
+                </dd>
+              </div>
+            </dl>
+          </div>
+
+          <div className="lg:col-span-5">
+            <div className="overflow-hidden rounded-xl border border-charcoal-border bg-charcoal-surface">
+              <Image
+                src="/images/hero-bg.png"
+                alt="Hidangan tumpeng, lauk tradisional, dan jajanan pasar Dapoer Bulek di atas meja kayu"
+                width={1024}
+                height={1024}
+                sizes="(max-width: 1024px) 100vw, 42vw"
+                priority
+                fetchPriority="high"
+                className="aspect-square h-auto w-full object-cover"
+              />
+            </div>
           </div>
         </div>
-      </div>
-
-      {/* Scroll indicator */}
-      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-float">
-        <a href="#menu" className="flex flex-col items-center gap-2 text-cream/40 transition-colors hover:text-golden">
-          <span className="text-xs font-medium tracking-widest uppercase">Scroll</span>
-          <ChevronDown className="h-5 w-5" />
-        </a>
       </div>
     </section>
   );
 }
 
-/* ─────────────────────── MENU CATALOG ─────────────────────── */
+function MenuCard({ item }: { item: MenuItem }) {
+  return (
+    <article className="flex flex-col overflow-hidden rounded-lg border border-cream-border bg-white">
+      <div className="overflow-hidden border-b border-cream-border bg-cream-muted">
+        <Image
+          src={item.image}
+          alt={item.name}
+          width={1024}
+          height={1024}
+          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+          className="aspect-square h-auto w-full object-cover transition-transform duration-300 hover:scale-[1.03]"
+        />
+      </div>
 
-function MenuCatalog() {
+      <div className="flex flex-1 flex-col p-5 sm:p-6">
+        <p className="text-xs font-semibold text-amber-text-strong">
+          {item.portionInfo} · {item.leadTime}
+        </p>
+
+        <h3 className="mt-2 font-serif text-xl font-bold text-charcoal">
+          {item.name}
+        </h3>
+
+        <p className="mt-2.5 flex-1 text-sm leading-relaxed text-ink-dark-secondary">
+          {item.description}
+        </p>
+
+        <a
+          href={getWhatsAppMenuLink(item.name)}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mt-5 inline-flex min-h-[44px] w-full items-center justify-center gap-2 rounded-md bg-golden px-4 py-2.5 text-sm font-semibold text-charcoal transition-colors hover:bg-golden-dark active:bg-golden-dark"
+        >
+          <MessageCircle className="h-4 w-4" aria-hidden="true" />
+          Tanya &amp; Pesan via WhatsApp
+        </a>
+      </div>
+    </article>
+  );
+}
+
+function MenuCatalogSection() {
   const [activeCategory, setActiveCategory] = useState<Category>("Semua");
-  const { ref, isVisible } = useInView(0.05);
 
   const filteredItems =
     activeCategory === "Semua"
       ? MENU_ITEMS
       : MENU_ITEMS.filter((item) => item.category === activeCategory);
 
+  const featuredItem =
+    activeCategory === "Semua"
+      ? filteredItems.find((item) => item.featured)
+      : undefined;
+
+  const gridItems = featuredItem
+    ? filteredItems.filter((item) => item.name !== featuredItem.name)
+    : filteredItems;
+
   return (
-    <section id="menu" ref={ref} className="relative py-24 sm:py-32">
-      {/* Background accent */}
-      <div className="absolute inset-0 bg-gradient-to-b from-charcoal via-charcoal-light/30 to-charcoal" />
-      <div className="absolute left-1/2 top-0 h-px w-3/4 -translate-x-1/2 bg-gradient-to-r from-transparent via-golden/20 to-transparent" />
-
-      <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        {/* Section Header */}
-        <div
-          className={`mx-auto max-w-2xl text-center transition-all duration-700 ${isVisible ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"
-            }`}
-        >
-          <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-golden/10 px-4 py-1.5">
-            <UtensilsCrossed className="h-3.5 w-3.5 text-golden" />
-            <span className="text-xs font-semibold tracking-wider text-golden uppercase">
-              Menu Pilihan
-            </span>
+    <section
+      id="menu"
+      className="border-t border-cream-border bg-cream py-16 text-charcoal sm:py-24"
+    >
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="flex flex-col gap-6 border-b border-cream-border pb-8 lg:flex-row lg:items-end lg:justify-between">
+          <div className="max-w-2xl">
+            <p className="text-sm font-semibold text-amber-text-strong">
+              Katalog Hidangan
+            </p>
+            <h2 className="mt-2 font-serif text-[clamp(1.75rem,3.4vw,2.75rem)] font-bold leading-tight text-charcoal">
+              Pilihan Menu Pre-Order
+            </h2>
+            <p className="mt-3 text-base leading-relaxed text-ink-dark-secondary">
+              Pilih kategori sajian untuk melihat detail isi dan waktu pesan
+              minimal. Harga dan variasi lauk menyesuaikan jumlah porsi acara
+              Anda.
+            </p>
           </div>
-          <h2 className="font-[var(--font-playfair)] text-3xl font-bold text-cream sm:text-4xl lg:text-5xl">
-            Katalog Menu <span className="text-golden">Kami</span>
-          </h2>
-          <p className="mt-4 text-base text-cream/60 sm:text-lg">
-            Pilih sajian favorit Anda. Setiap hidangan dibuat dengan bahan segar
-            dan penuh cinta.
-          </p>
+
+          <div
+            role="tablist"
+            aria-label="Filter kategori menu"
+            className="flex flex-wrap gap-2"
+          >
+            {CATEGORIES.map((category) => {
+              const isSelected = activeCategory === category;
+              return (
+                <button
+                  key={category}
+                  type="button"
+                  role="tab"
+                  aria-selected={isSelected}
+                  onClick={() => setActiveCategory(category)}
+                  className={`min-h-[44px] rounded-md border px-4 py-2 text-sm font-semibold transition-colors ${
+                    isSelected
+                      ? "border-charcoal bg-charcoal text-cream"
+                      : "border-cream-border bg-white text-ink-dark-secondary hover:border-charcoal hover:text-charcoal"
+                  }`}
+                >
+                  {category}
+                </button>
+              );
+            })}
+          </div>
         </div>
 
-        {/* Category Tabs */}
-        <div
-          className={`mt-12 flex flex-wrap justify-center gap-2 sm:gap-3 transition-all duration-700 delay-200 ${isVisible ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"
-            }`}
-        >
-          {CATEGORIES.map((cat) => (
+        {filteredItems.length === 0 ? (
+          <div className="mt-10 rounded-lg border border-cream-border bg-white p-8 text-center">
+            <p className="text-base font-medium text-charcoal">
+              Belum ada menu pada kategori ini.
+            </p>
             <button
-              key={cat}
-              onClick={() => setActiveCategory(cat)}
-              className={`rounded-full px-5 py-2.5 text-sm font-medium transition-all duration-300 ${activeCategory === cat
-                  ? "bg-gradient-to-r from-golden to-golden-dark text-charcoal"
-                  : "bg-cream/5 text-cream/60 hover:text-golden"
-                }`}
+              type="button"
+              onClick={() => setActiveCategory("Semua")}
+              className="mt-4 inline-flex min-h-[44px] items-center justify-center rounded-md bg-golden px-5 py-2.5 text-sm font-semibold text-charcoal transition-colors hover:bg-golden-dark"
             >
-              {cat}
+              Tampilkan Semua Menu
             </button>
-          ))}
-        </div>
+          </div>
+        ) : (
+          <div className="mt-10 space-y-8">
+            {featuredItem && (
+              <article className="grid overflow-hidden rounded-xl border border-cream-border bg-white lg:grid-cols-12">
+                <div className="bg-cream-muted lg:col-span-5">
+                  <Image
+                    src={featuredItem.image}
+                    alt={featuredItem.name}
+                    width={1024}
+                    height={1024}
+                    sizes="(max-width: 1024px) 100vw, 42vw"
+                    className="aspect-square h-full w-full object-cover"
+                  />
+                </div>
+                <div className="flex flex-col justify-center p-6 sm:p-8 lg:col-span-7 lg:p-10">
+                  <p className="text-xs font-semibold text-amber-text-strong">
+                    Menu Utama · {featuredItem.portionInfo} ·{" "}
+                    {featuredItem.leadTime}
+                  </p>
+                  <h3 className="mt-2 font-serif text-2xl font-bold text-charcoal sm:text-3xl">
+                    {featuredItem.name}
+                  </h3>
+                  <p className="mt-4 max-w-xl text-base leading-relaxed text-ink-dark-secondary">
+                    {featuredItem.description}
+                  </p>
+                  <p className="mt-4 text-sm text-ink-dark-muted">
+                    Tersedia penyesuaian porsi dan permintaan lauk tambahan
+                    untuk acara syukuran, peresmian, maupun ulang tahun.
+                  </p>
+                  <div className="mt-7">
+                    <a
+                      href={getWhatsAppMenuLink(featuredItem.name)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex min-h-[48px] items-center justify-center gap-2 rounded-full bg-golden px-7 py-3 text-sm font-semibold text-charcoal transition-colors hover:bg-golden-dark active:bg-golden-dark sm:text-base"
+                    >
+                      <MessageCircle className="h-4 w-4" aria-hidden="true" />
+                      Konsultasi &amp; Pesan Tumpeng
+                    </a>
+                  </div>
+                </div>
+              </article>
+            )}
 
-        {/* Menu Grid */}
-        <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {filteredItems.map((item, index) => (
-            <MenuCard key={item.name} item={item} index={index} parentVisible={isVisible} />
-          ))}
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {gridItems.map((item) => (
+                <MenuCard key={item.name} item={item} />
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
+
+function AboutKitchenSection() {
+  return (
+    <section
+      id="about"
+      className="bg-charcoal py-16 text-cream sm:py-24"
+    >
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="grid gap-12 lg:grid-cols-12 lg:gap-16">
+          <div className="lg:col-span-5">
+            <p className="text-sm font-semibold text-golden">
+              Dapur Kami Sejak 2019
+            </p>
+            <div className="mt-3 h-0.5 w-14 bg-golden" aria-hidden="true" />
+
+            <h2 className="mt-5 font-serif text-[clamp(1.75rem,3.4vw,2.75rem)] font-bold leading-tight text-cream">
+              Masakan Rumahan yang Disiapkan Khusus per Acara
+            </h2>
+
+            <p className="mt-5 text-base leading-relaxed text-ink-light-secondary">
+              Berangkat dari dapur keluarga di Dayamurni, Tumijajar sejak 2019,
+              Dapoer Bulek mengerjakan setiap pesanan secara langsung tanpa
+              stok siap jadi yang menginap.
+            </p>
+            <p className="mt-4 text-base leading-relaxed text-ink-light-secondary">
+              Mulai dari nasi tumpeng untuk syukuran keluarga hingga paket snack
+              box rapat kantor di Tulang Bawang Barat, seluruh detail lauk dan
+              jadwal serah terima dibicarakan langsung bersama pemilik dapur.
+            </p>
+          </div>
+
+          <div className="lg:col-span-7">
+            <ol className="divide-y divide-charcoal-border border-y border-charcoal-border">
+              {KITCHEN_STANDARDS.map((item) => (
+                <li
+                  key={item.step}
+                  className="grid gap-3 py-6 sm:grid-cols-12 sm:items-baseline sm:gap-6"
+                >
+                  <div className="font-serif text-lg font-bold text-golden sm:col-span-2">
+                    {item.step}
+                  </div>
+                  <div className="sm:col-span-10">
+                    <h3 className="font-serif text-xl font-bold text-cream">
+                      {item.title}
+                    </h3>
+                    <p className="mt-2 text-sm leading-relaxed text-ink-light-secondary sm:text-base">
+                      {item.detail}
+                    </p>
+                  </div>
+                </li>
+              ))}
+            </ol>
+          </div>
         </div>
       </div>
     </section>
   );
 }
 
-function MenuCard({
-  item,
-  index,
-  parentVisible,
-}: {
-  item: MenuItem;
-  index: number;
-  parentVisible: boolean;
-}) {
+function InstagramGallerySection() {
   return (
-    <div
-      className={`group relative overflow-hidden rounded-2xl bg-charcoal-light/50 backdrop-blur-sm transition-all duration-500 hover:-translate-y-1 ${parentVisible
-          ? "translate-y-0 opacity-100"
-          : "translate-y-12 opacity-0"
-        }`}
-      style={{ transitionDelay: parentVisible ? `${300 + index * 100}ms` : "0ms" }}
+    <section
+      id="galeri"
+      className="border-t border-cream-border bg-cream py-16 text-charcoal sm:py-24"
     >
-      {/* Image */}
-      <div className="relative h-56 overflow-hidden">
-        <Image
-          src={item.image}
-          alt={item.name}
-          fill
-          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-          className="object-cover transition-transform duration-700 group-hover:scale-110"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-charcoal/80 via-transparent to-transparent" />
-
-        {/* Tag */}
-        <div className="absolute right-3 top-3 rounded-full bg-golden/90 px-3 py-1 text-xs font-bold text-charcoal backdrop-blur-sm">
-          {item.tag}
-        </div>
-      </div>
-
-      {/* Content */}
-      <div className="p-5">
-        <h3 className="font-[var(--font-playfair)] text-lg font-bold text-cream transition-colors group-hover:text-golden">
-          {item.name}
-        </h3>
-        <p className="mt-2 text-sm leading-relaxed text-cream/50">
-          {item.description}
-        </p>
-        <a
-          href={getWhatsAppLink(item.name)}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-golden to-golden-dark px-4 py-3 text-sm font-semibold text-charcoal transition-all duration-300 hover:scale-[1.02]"
-        >
-          <MessageCircle className="h-4 w-4" />
-          Pesan via WhatsApp
-        </a>
-      </div>
-    </div>
-  );
-}
-
-/* ─────────────────────── ABOUT US ─────────────────────── */
-
-function AboutSection() {
-  const { ref, isVisible } = useInView(0.1);
-
-  const features = [
-    {
-      icon: ShieldCheck,
-      title: "Higienis & Bersih",
-      description: "Proses masak dalam dapur bersih dengan standar kebersihan tinggi.",
-    },
-    {
-      icon: Leaf,
-      title: "Bahan Premium",
-      description: "Menggunakan bahan-bahan segar dan bumbu pilihan berkualitas terbaik.",
-    },
-    {
-      icon: Award,
-      title: "Presentasi Cantik",
-      description: "Setiap hidangan ditata dengan estetika tinggi untuk momen spesial Anda.",
-    },
-    {
-      icon: CalendarCheck,
-      title: "Tepat Waktu",
-      description: "Komitmen pengiriman tepat waktu sesuai jadwal acara Anda.",
-    },
-  ];
-
-  return (
-    <section id="about" ref={ref} className="relative py-24 sm:py-32 overflow-hidden">
-      {/* Background */}
-      <div className="absolute inset-0 bg-charcoal" />
-      <div className="absolute right-0 top-0 h-[500px] w-[500px] rounded-full bg-golden/3 blur-[150px]" />
-      <div className="absolute -left-40 bottom-0 h-[400px] w-[400px] rounded-full bg-golden/5 blur-[120px]" />
-
-      <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="grid gap-16 lg:grid-cols-2 lg:items-center">
-          {/* Left — Text */}
-          <div
-            className={`transition-all duration-700 ${isVisible ? "translate-x-0 opacity-100" : "-translate-x-12 opacity-0"
-              }`}
-          >
-            <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-golden/10 px-4 py-1.5">
-              <Heart className="h-3.5 w-3.5 text-golden" />
-              <span className="text-xs font-semibold tracking-wider text-golden uppercase">
-                Tentang Kami
-              </span>
-            </div>
-
-            <h2 className="font-[var(--font-playfair)] text-3xl font-bold text-cream sm:text-4xl lg:text-5xl">
-              Cita Rasa <span className="text-golden">Rumahan</span>,{" "}
-              <br className="hidden sm:block" />
-              Kualitas Premium
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="grid items-center gap-10 lg:grid-cols-12 lg:gap-12">
+          <div className="lg:col-span-5">
+            <p className="text-sm font-semibold text-amber-text-strong">
+              Dokumentasi Pesanan Nyata
+            </p>
+            <h2 className="mt-2 font-serif text-[clamp(1.75rem,3.4vw,2.625rem)] font-bold leading-tight text-charcoal">
+              Lihat Hasil Pesanan dan Sorotan Pelanggan di Instagram
             </h2>
-
-            <p className="mt-6 text-base leading-relaxed text-cream/60 sm:text-lg">
-              <span className="font-semibold text-cream">Dapoer Bulek</span> hadir
-              sejak <span className="text-golden font-semibold">2019</span> sebagai
-              pilihan catering terpercaya di Tulang Bawang Barat. Berawal dari dapur
-              rumahan di Dayamurni, kami berkomitmen menyajikan hidangan yang tidak
-              hanya lezat, tetapi juga memiliki tampilan yang memukau.
-            </p>
-            <p className="mt-4 text-base leading-relaxed text-cream/60 sm:text-lg">
-              Setiap pesanan kami tangani dengan sepenuh hati — dari pemilihan bahan
-              segar hingga penataan yang estetik. Karena kami percaya, setiap momen
-              berharga Anda layak mendapatkan sajian istimewa.
+            <p className="mt-4 text-base leading-relaxed text-ink-dark-secondary">
+              Dokumentasi pengiriman harian, variasi bentuk tumpeng pudding, dan
+              tanggapan langsung dari pelanggan kami bagikan di akun resmi{" "}
+              <span className="font-semibold text-charcoal">
+                @dapoerbule_354
+              </span>
+              .
             </p>
 
-            {/* Stats row */}
-            <div className="mt-10 flex items-center gap-8">
-              {[
-                { icon: Users, value: "500+", label: "Pelanggan Puas" },
-                { icon: Award, value: "6+", label: "Tahun Pengalaman" },
-                { icon: Star, value: "4.9", label: "Rating" },
-              ].map((stat) => (
-                <div key={stat.label} className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-golden/10">
-                    <stat.icon className="h-5 w-5 text-golden" />
-                  </div>
-                  <div>
-                    <div className="font-[var(--font-playfair)] text-xl font-bold text-cream">
-                      {stat.value}
-                    </div>
-                    <div className="text-xs text-cream/50">{stat.label}</div>
-                  </div>
-                </div>
-              ))}
+            <div className="mt-7 flex flex-wrap gap-3">
+              <a
+                href={INSTAGRAM_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex min-h-[48px] items-center justify-center gap-2 rounded-full bg-charcoal px-6 py-3 text-sm font-semibold text-cream transition-colors hover:bg-charcoal-surface sm:text-base"
+              >
+                <InstagramIcon className="h-4 w-4" />
+                Buka @dapoerbule_354
+              </a>
+              <a
+                href={getWhatsAppGeneralLink()}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex min-h-[48px] items-center justify-center rounded-full border border-cream-border bg-white px-6 py-3 text-sm font-semibold text-charcoal transition-colors hover:border-charcoal sm:text-base"
+              >
+                Cek Ketersediaan Tanggal
+              </a>
             </div>
           </div>
 
-          {/* Right — Feature Cards */}
-          <div
-            className={`grid gap-4 sm:grid-cols-2 transition-all duration-700 delay-300 ${isVisible ? "translate-x-0 opacity-100" : "translate-x-12 opacity-0"
-              }`}
-          >
-            {features.map((feature, i) => (
-              <div
-                key={feature.title}
-                className="group rounded-2xl bg-charcoal-light/50 p-6 backdrop-blur-sm transition-all duration-300 hover:bg-charcoal-light/80"
-                style={{ transitionDelay: `${400 + i * 100}ms` }}
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 lg:col-span-7">
+            {GALLERY_HIGHLIGHTS.map((photo) => (
+              <figure
+                key={photo.src}
+                className="overflow-hidden rounded-lg border border-cream-border bg-white"
               >
-                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-golden/20 to-golden/5 transition-colors group-hover:from-golden/30 group-hover:to-golden/10">
-                  <feature.icon className="h-6 w-6 text-golden" />
-                </div>
-                <h3 className="font-[var(--font-playfair)] text-lg font-semibold text-cream">
-                  {feature.title}
-                </h3>
-                <p className="mt-2 text-sm leading-relaxed text-cream/50">
-                  {feature.description}
-                </p>
-              </div>
+                <Image
+                  src={photo.src}
+                  alt={photo.alt}
+                  width={1024}
+                  height={1024}
+                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 33vw, 20vw"
+                  className="aspect-square h-auto w-full object-cover"
+                />
+                <figcaption className="px-3.5 py-3 text-xs font-medium leading-snug text-ink-dark-secondary">
+                  {photo.caption}
+                </figcaption>
+              </figure>
             ))}
           </div>
         </div>
@@ -703,350 +728,204 @@ function AboutSection() {
   );
 }
 
-/* ─────────────────── TESTIMONIALS ─────────────────── */
-
-function TestimonialsSection() {
-  const { ref, isVisible } = useInView(0.1);
-
+function PreOrderLocationSection() {
   return (
-    <section id="testimonials" ref={ref} className="relative py-24 sm:py-32">
-      {/* Background */}
-      <div className="absolute inset-0 bg-gradient-to-b from-charcoal via-charcoal-light/20 to-charcoal" />
-      <div className="absolute left-1/2 top-0 h-px w-3/4 -translate-x-1/2 bg-gradient-to-r from-transparent via-golden/20 to-transparent" />
-
-      <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div
-          className={`mx-auto max-w-2xl text-center transition-all duration-700 ${isVisible ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"
-            }`}
-        >
-          <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-golden/10 px-4 py-1.5">
-            <Star className="h-3.5 w-3.5 text-golden" />
-            <span className="text-xs font-semibold tracking-wider text-golden uppercase">
-              Testimoni
-            </span>
-          </div>
-          <h2 className="font-[var(--font-playfair)] text-3xl font-bold text-cream sm:text-4xl lg:text-5xl">
-            Apa Kata <span className="text-golden">Mereka?</span>
-          </h2>
-          <p className="mt-4 text-base text-cream/60 sm:text-lg">
-            Kepercayaan pelanggan adalah kebanggaan terbesar kami.
-          </p>
-        </div>
-
-        {/* Testimonial Grid */}
-        <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {TESTIMONIALS.map((testimonial, i) => (
-            <div
-              key={testimonial.name}
-              className={`group rounded-2xl bg-charcoal-light/40 p-6 backdrop-blur-sm transition-all duration-500 ${isVisible
-                  ? "translate-y-0 opacity-100"
-                  : "translate-y-12 opacity-0"
-                }`}
-              style={{ transitionDelay: isVisible ? `${200 + i * 100}ms` : "0ms" }}
-            >
-              {/* Stars */}
-              <div className="flex gap-1">
-                {Array.from({ length: testimonial.rating }).map((_, idx) => (
-                  <Star
-                    key={idx}
-                    className="h-4 w-4 fill-golden text-golden"
-                  />
-                ))}
-              </div>
-
-              {/* Quote */}
-              <p className="mt-4 text-sm leading-relaxed text-cream/70 italic">
-                &ldquo;{testimonial.text}&rdquo;
-              </p>
-
-              {/* Author */}
-              <div className="mt-5 flex items-center gap-3 pt-4">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-golden to-golden-dark text-sm font-bold text-charcoal">
-                  {testimonial.name.charAt(0)}
-                  {testimonial.name.split(" ")[1]?.charAt(0)}
-                </div>
-                <div>
-                  <div className="text-sm font-semibold text-cream">
-                    {testimonial.name}
-                  </div>
-                  <div className="text-xs text-cream/40">
-                    {testimonial.location}
-                  </div>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Instagram Banner */}
-        <div
-          className={`mt-16 overflow-hidden rounded-2xl bg-gradient-to-r from-charcoal-light via-charcoal-lighter/50 to-charcoal-light p-8 sm:p-12 transition-all duration-700 delay-500 ${isVisible ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"
-            }`}
-        >
-          <div className="flex flex-col items-center gap-6 text-center sm:flex-row sm:text-left">
-            <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-[#E1306C] via-[#F77737] to-[#FCAF45]">
-              <Instagram className="h-8 w-8 text-white" />
-            </div>
-            <div className="flex-1">
-              <h3 className="font-[var(--font-playfair)] text-xl font-bold text-cream sm:text-2xl">
-                Follow Kami di Instagram
-              </h3>
-              <p className="mt-1 text-sm text-cream/60 sm:text-base">
-                Lihat update menu terbaru, behind the scenes, dan promo spesial di{" "}
-                <span className="font-semibold text-golden">@dapoerbule_354</span>
-              </p>
-            </div>
-            <a
-              href="https://www.instagram.com/dapoerbule_354/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#E1306C] via-[#F77737] to-[#FCAF45] px-6 py-3 text-sm font-semibold text-white transition-all duration-300 hover:scale-105"
-            >
-              <Instagram className="h-4 w-4" />
-              Kunjungi Instagram
-            </a>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-/* ─────────────────── LOCATION ─────────────────── */
-
-function LocationSection() {
-  const { ref, isVisible } = useInView(0.1);
-
-  return (
-    <section id="location" ref={ref} className="relative py-24 sm:py-32">
-      {/* Background */}
-      <div className="absolute inset-0 bg-charcoal" />
-      <div className="absolute left-1/2 top-0 h-px w-3/4 -translate-x-1/2 bg-gradient-to-r from-transparent via-golden/20 to-transparent" />
-
-      <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div
-          className={`mx-auto max-w-2xl text-center transition-all duration-700 ${
-            isVisible ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"
-          }`}
-        >
-          <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-golden/10 px-4 py-1.5">
-            <MapPin className="h-3.5 w-3.5 text-golden" />
-            <span className="text-xs font-semibold tracking-wider text-golden uppercase">
-              Lokasi Kami
-            </span>
-          </div>
-          <h2 className="font-[var(--font-playfair)] text-3xl font-bold text-cream sm:text-4xl lg:text-5xl">
-            Temukan <span className="text-golden">Dapoer Bulek</span>
-          </h2>
-          <p className="mt-4 text-base text-cream/60 sm:text-lg">
-            Dayamurni, Tumijajar, Tulang Bawang Barat, Lampung
-          </p>
-        </div>
-
-        {/* Map Embed */}
-        <div
-          className={`mt-12 overflow-hidden rounded-2xl border border-cream/10 bg-charcoal-light/50 p-2 sm:p-3 transition-all duration-700 delay-200 ${
-            isVisible ? "translate-y-0 opacity-100" : "translate-y-12 opacity-0"
-          }`}
-        >
-          <div className="overflow-hidden rounded-xl">
-            <iframe
-              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d591.1478642283023!2d105.07461774540799!3d-4.6381027255981!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e3f4bcf1b7cf029%3A0xe61adf6a032d5bcf!2sDapoer%20Bule'!5e0!3m2!1sen!2sid!4v1793774700609!5m2!1sen!2sid"
-              width="600"
-              height="450"
-              style={{ border: 0 }}
-              allowFullScreen
-              loading="lazy"
-              referrerPolicy="strict-origin-when-cross-origin"
-              title="Lokasi Dapoer Bulek di Google Maps"
-              className="h-[350px] w-full sm:h-[450px]"
-            />
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-/* ─────────────────── FOOTER / CONTACT ─────────────────── */
-
-function Footer() {
-  const { ref, isVisible } = useInView(0.1);
-
-  return (
-    <footer id="contact" ref={ref} className="relative overflow-hidden">
-      {/* Top separator */}
-      <div className="absolute left-1/2 top-0 h-px w-3/4 -translate-x-1/2 bg-gradient-to-r from-transparent via-golden/20 to-transparent" />
-
-      {/* Contact CTA Section */}
-      <div className="relative bg-charcoal py-24">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-golden/5 via-transparent to-transparent" />
-
-        <div
-          className={`relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 transition-all duration-700 ${isVisible ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"
-            }`}
-        >
-          {/* CTA Banner */}
-          <div className="mx-auto max-w-3xl text-center">
-            <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-golden/10 px-4 py-1.5">
-              <Phone className="h-3.5 w-3.5 text-golden" />
-              <span className="text-xs font-semibold tracking-wider text-golden uppercase">
-                Hubungi Kami
-              </span>
-            </div>
-            <h2 className="font-[var(--font-playfair)] text-3xl font-bold text-cream sm:text-4xl">
-              Siap Memesan untuk <span className="text-golden">Acara Anda?</span>
+    <section
+      id="preorder"
+      className="border-t border-cream-border bg-cream-muted py-16 text-charcoal sm:py-24"
+    >
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="grid gap-10 lg:grid-cols-12 lg:gap-12">
+          <div className="lg:col-span-5">
+            <p className="text-sm font-semibold text-amber-text-strong">
+              Ketentuan Pre-Order &amp; Lokasi
+            </p>
+            <h2 className="mt-2 font-serif text-[clamp(1.75rem,3.4vw,2.625rem)] font-bold leading-tight text-charcoal">
+              Jadwal Pemesanan &amp; Area Dapur
             </h2>
-            <p className="mx-auto mt-4 max-w-lg text-base text-cream/60">
-              Hubungi kami via WhatsApp untuk konsultasi menu, harga, dan
-              pemesanan. Kami siap membantu!
+            <p className="mt-4 text-base leading-relaxed text-ink-dark-secondary">
+              Pemesanan dilayani dengan sistem Pre-Order melalui WhatsApp agar
+              setiap porsi terjamin kesiapan bahan dan waktunya.
             </p>
-            <a
-              href={getWhatsAppGeneral()}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mt-8 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-golden to-golden-dark px-8 py-4 text-base font-semibold text-charcoal transition-all duration-300 hover:scale-105"
+
+            <dl className="mt-7 divide-y divide-cream-border rounded-lg border border-cream-border bg-white px-5">
+              <div className="flex flex-col gap-1 py-4 sm:flex-row sm:items-center sm:justify-between">
+                <dt className="text-sm font-medium text-ink-dark-secondary">
+                  Tumpeng Nasi Kuning &amp; Tumpeng Buah
+                </dt>
+                <dd className="text-sm font-semibold text-charcoal">
+                  Minimal H-3
+                </dd>
+              </div>
+              <div className="flex flex-col gap-1 py-4 sm:flex-row sm:items-center sm:justify-between">
+                <dt className="text-sm font-medium text-ink-dark-secondary">
+                  Nasi Kotak (min. 20) &amp; Snack Box (min. 15)
+                </dt>
+                <dd className="text-sm font-semibold text-charcoal">
+                  Minimal H-2
+                </dd>
+              </div>
+              <div className="flex flex-col gap-1 py-4 sm:flex-row sm:items-center sm:justify-between">
+                <dt className="text-sm font-medium text-ink-dark-secondary">
+                  Pudding Cake &amp; Pie Buah
+                </dt>
+                <dd className="text-sm font-semibold text-charcoal">
+                  Minimal H-2
+                </dd>
+              </div>
+            </dl>
+
+            <div
+              id="location"
+              className="mt-6 rounded-lg border border-cream-border bg-white p-5"
             >
-              <MessageCircle className="h-5 w-5" />
-              Chat via WhatsApp
-            </a>
+              <div className="flex items-start gap-3">
+                <MapPin
+                  className="mt-0.5 h-5 w-5 shrink-0 text-amber-text-strong"
+                  aria-hidden="true"
+                />
+                <div>
+                  <h3 className="font-serif text-lg font-bold text-charcoal">
+                    Alamat Dapur
+                  </h3>
+                  <p className="mt-1 text-sm leading-relaxed text-ink-dark-secondary">
+                    Dayamurni, Kec. Tumijajar, Kab. Tulang Bawang Barat, Lampung
+                  </p>
+                  <a
+                    href={MAPS_URL}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-3 inline-flex min-h-[44px] items-center text-sm font-semibold text-amber-text-strong underline underline-offset-4 hover:text-charcoal"
+                  >
+                    Buka Rute di Google Maps
+                  </a>
+                </div>
+              </div>
+            </div>
           </div>
 
-          {/* Info Cards */}
-          <div className="mt-16 grid gap-6 sm:grid-cols-3">
-            {/* Operational Info */}
-            <div className="rounded-2xl bg-charcoal-light/50 p-6 backdrop-blur-sm">
-              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-golden/10">
-                <Clock className="h-6 w-6 text-golden" />
-              </div>
-              <h3 className="font-[var(--font-playfair)] text-lg font-semibold text-cream">
-                Info Pemesanan
-              </h3>
-              <ul className="mt-3 space-y-2 text-sm text-cream/60">
-                <li className="flex items-start gap-2">
-                  <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-golden" />
-                  Pemesanan Tumpeng Besar: minimal H-3
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-golden" />
-                  Nasi Kotak & Snack Box: minimal H-2
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-golden" />
-                  Pudding & Kue: minimal H-2
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-golden" />
-                  Sistem: Pre-Order (PO) via WhatsApp
-                </li>
-              </ul>
-            </div>
-
-            {/* Address */}
-            <div className="rounded-2xl bg-charcoal-light/50 p-6 backdrop-blur-sm">
-              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-golden/10">
-                <MapPin className="h-6 w-6 text-golden" />
-              </div>
-              <h3 className="font-[var(--font-playfair)] text-lg font-semibold text-cream">
-                Lokasi Kami
-              </h3>
-              <p className="mt-3 text-sm leading-relaxed text-cream/60">
-                Dayamurni, Tumijajar,
-                <br />
-                Tulang Bawang Barat,
-                <br />
-                Lampung, Indonesia
-              </p>
-              <p className="mt-3 text-sm text-cream/40">
-                Area layanan: Tumijajar dan sekitarnya
-              </p>
-            </div>
-
-            {/* Social & Contact */}
-            <div className="rounded-2xl bg-charcoal-light/50 p-6 backdrop-blur-sm">
-              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-golden/10">
-                <MessageCircle className="h-6 w-6 text-golden" />
-              </div>
-              <h3 className="font-[var(--font-playfair)] text-lg font-semibold text-cream">
-                Kontak & Sosial Media
-              </h3>
-              <div className="mt-3 space-y-3">
-                <a
-                  href={getWhatsAppGeneral()}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-3 text-sm text-cream/60 transition-colors hover:text-golden"
-                >
-                  <Phone className="h-4 w-4" />
-                  +62 821-9356-2480
-                </a>
-                <a
-                  href="https://www.instagram.com/dapoerbule_354/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-3 text-sm text-cream/60 transition-colors hover:text-golden"
-                >
-                  <Instagram className="h-4 w-4" />
-                  @dapoerbule_354
-                </a>
-              </div>
+          <div className="lg:col-span-7">
+            <div className="overflow-hidden rounded-xl border border-cream-border bg-white p-2">
+              <iframe
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d591.1478642283023!2d105.07461774540799!3d-4.6381027255981!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e3f4bcf1b7cf029%3A0xe61adf6a032d5bcf!2sDapoer%20Bule'!5e0!3m2!1sen!2sid!4v1793774700609!5m2!1sen!2sid"
+                width={600}
+                height={450}
+                style={{ border: 0 }}
+                allowFullScreen
+                loading="lazy"
+                referrerPolicy="strict-origin-when-cross-origin"
+                title="Peta lokasi Dapoer Bulek di Dayamurni, Tumijajar"
+                className="aspect-[4/3] w-full rounded-lg"
+              />
             </div>
           </div>
         </div>
       </div>
+    </section>
+  );
+}
 
-      {/* Bottom Footer */}
-      <div className="bg-charcoal">
-        <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-          <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
-            {/* Brand */}
-            <div className="flex items-center gap-3">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-golden to-golden-dark">
-                <UtensilsCrossed className="h-4 w-4 text-charcoal" />
-              </div>
-              <span className="font-[var(--font-playfair)] text-sm font-bold text-cream">
-                Dapoer <span className="text-golden">Bulek</span>
-              </span>
-            </div>
-
-            {/* Links */}
-            <div className="flex flex-wrap justify-center gap-6">
-              {NAV_LINKS.map((link) => (
-                <a
-                  key={link.href}
-                  href={link.href}
-                  className="text-xs text-cream/40 transition-colors hover:text-golden"
-                >
-                  {link.label}
-                </a>
-              ))}
-            </div>
-
-            {/* Copyright */}
-            <p className="text-xs text-cream/30">
-              &copy; {new Date().getFullYear()} Dapoer Bulek. All rights reserved.
+function FooterSection() {
+  return (
+    <footer
+      id="contact"
+      className="border-t border-charcoal-border bg-charcoal text-cream"
+    >
+      <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
+        <div className="flex flex-col justify-between gap-8 border-b border-charcoal-border pb-12 lg:flex-row lg:items-center">
+          <div className="max-w-xl">
+            <p className="text-sm font-semibold text-golden">
+              Kontak Pemesanan
+            </p>
+            <h2 className="mt-2 font-serif text-[clamp(1.75rem,3vw,2.5rem)] font-bold leading-tight text-cream">
+              Siap Menyiapkan Hidangan untuk Acara Anda
+            </h2>
+            <p className="mt-3 text-base leading-relaxed text-ink-light-secondary">
+              Hubungi kami lewat WhatsApp untuk menanyakan daftar harga terbaru,
+              penyesuaian menu, dan ketersediaan jadwal pengantaran.
             </p>
           </div>
+
+          <div className="flex flex-wrap gap-3">
+            <a
+              href={getWhatsAppGeneralLink()}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex min-h-[48px] items-center justify-center gap-2 rounded-full bg-golden px-7 py-3 text-base font-semibold text-charcoal transition-colors hover:bg-golden-dark active:bg-golden-dark"
+            >
+              <MessageCircle className="h-5 w-5" aria-hidden="true" />
+              Chat WhatsApp (+62 821-9356-2480)
+            </a>
+          </div>
+        </div>
+
+        <div className="mt-8 flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+          <div className="flex items-center gap-3">
+            <Image
+              src="/logo/logo.png"
+              alt="Logo Dapoer Bulek"
+              width={36}
+              height={36}
+              className="h-9 w-9 rounded-full object-contain"
+            />
+            <div>
+              <p className="font-serif text-base font-bold text-cream">
+                Dapoer <span className="text-golden">Bulek</span>
+              </p>
+              <p className="text-xs text-ink-light-muted">
+                Dayamurni, Tumijajar, Tulang Bawang Barat
+              </p>
+            </div>
+          </div>
+
+          <nav aria-label="Navigasi footer" className="flex flex-wrap gap-2 sm:gap-4">
+            {NAV_LINKS.map((link) => (
+              <a
+                key={link.href}
+                href={link.href}
+                className="inline-flex min-h-[44px] items-center px-2 text-sm text-ink-light-secondary transition-colors hover:text-golden"
+              >
+                {link.label}
+              </a>
+            ))}
+            <a
+              href={INSTAGRAM_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex min-h-[44px] items-center gap-1.5 px-2 text-sm text-ink-light-secondary transition-colors hover:text-golden"
+            >
+              <InstagramIcon className="h-4 w-4" />
+              @dapoerbule_354
+            </a>
+          </nav>
+
+          <p className="text-xs text-ink-light-muted">
+            &copy; 2019&ndash;{new Date().getFullYear()} Dapoer Bulek
+          </p>
         </div>
       </div>
     </footer>
   );
 }
 
-/* ─────────────────────── MAIN PAGE ─────────────────────── */
-
 export default function Home() {
   return (
     <>
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[60] focus:rounded-md focus:bg-golden focus:px-4 focus:py-3 focus:text-sm focus:font-semibold focus:text-charcoal"
+      >
+        Langsung ke konten utama
+      </a>
       <Navbar />
-      <Hero />
-      <MenuCatalog />
-      <AboutSection />
-      <TestimonialsSection />
-      <LocationSection />
-      <Footer />
+      <main id="main-content" tabIndex={-1}>
+        <HeroSection />
+        <MenuCatalogSection />
+        <AboutKitchenSection />
+        <InstagramGallerySection />
+        <PreOrderLocationSection />
+      </main>
+      <FooterSection />
     </>
   );
 }

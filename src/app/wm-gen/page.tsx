@@ -1,16 +1,18 @@
 "use client";
 
-import { useState, useRef, DragEvent, ChangeEvent } from "react";
+import { ChangeEvent, DragEvent, useRef, useState } from "react";
 import Link from "next/link";
 import {
-  UploadCloud,
-  Download,
-  RotateCcw,
-  Image as ImageIcon,
+  AlertCircle,
   ArrowLeft,
-  Sparkles,
   CheckCircle2,
+  Download,
+  Image as ImageIcon,
+  RotateCcw,
+  UploadCloud,
 } from "lucide-react";
+
+const SUPPORTED_MIME_TYPES = new Set(["image/png", "image/jpeg", "image/jpg", "image/webp"]);
 
 export default function WatermarkGenerator() {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -19,69 +21,77 @@ export default function WatermarkGenerator() {
   const [dimensions, setDimensions] = useState<{ width: number; height: number } | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const processFile = (file: File) => {
-    if (!file.type.startsWith("image/")) {
-      alert("Format berkas harus berupa gambar (PNG, JPG, JPEG).");
+    if (!SUPPORTED_MIME_TYPES.has(file.type)) {
+      setErrorMessage("Format berkas tidak didukung. Gunakan gambar PNG, JPG, JPEG, atau WebP.");
       return;
     }
 
+    setErrorMessage(null);
     setIsProcessing(true);
     setFileName(file.name);
-    setFileType(file.type);
+    setFileType(file.type === "image/png" ? "image/png" : "image/jpeg");
 
     const reader = new FileReader();
-    reader.onload = (e) => {
+    reader.onerror = () => {
+      setIsProcessing(false);
+      setErrorMessage("Berkas gambar gagal dibaca. Silakan coba pilih berkas lain.");
+    };
+
+    reader.onload = (event) => {
       const img = new Image();
+      img.onerror = () => {
+        setIsProcessing(false);
+        setErrorMessage("Gambar tidak dapat dimuat. Pastikan berkas tidak rusak.");
+      };
+
       img.onload = () => {
         const canvas = canvasRef.current;
-        if (!canvas) return;
+        if (!canvas) {
+          setIsProcessing(false);
+          setErrorMessage("Kanvas pratinjau belum siap. Silakan ulangi proses unggah.");
+          return;
+        }
 
         const ctx = canvas.getContext("2d");
-        if (!ctx) return;
+        if (!ctx) {
+          setIsProcessing(false);
+          setErrorMessage("Browser tidak mendukung pemrosesan kanvas 2D.");
+          return;
+        }
 
-        // Set canvas to original image dimensions
         canvas.width = img.width;
         canvas.height = img.height;
-
-        // Draw the uploaded image
         ctx.drawImage(img, 0, 0);
 
-        // Watermark configurations
-        const text = "dapoerbulek_354";
+        const watermarkText = "dapoerbulek_354";
+        const fontSize = Math.max(18, Math.round(img.width / 15));
 
-        // Dynamically size the font relative to image width
-        const fontSize = Math.max(18, img.width / 15);
-
-        // Use a clean Sans-Serif font for the watermark
         ctx.font = `bold ${fontSize}px sans-serif`;
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
+        ctx.fillStyle = "rgba(250, 250, 249, 0.4)";
+        ctx.fillText(watermarkText, img.width / 2, img.height / 2);
 
-        // Draw watermark with 40% opacity
-        ctx.fillStyle = "rgba(250, 250, 249, 0.4)"; // Soft Off-White/Cream at 0.4 alpha
-
-        // Center of the image
-        const x = img.width / 2;
-        const y = img.height / 2;
-
-        ctx.fillText(text, x, y);
-
-        // Set state for preview and dimension details
-        setPreviewUrl(canvas.toDataURL(file.type));
+        const outputType = file.type === "image/png" ? "image/png" : "image/jpeg";
+        setPreviewUrl(canvas.toDataURL(outputType, 0.92));
         setDimensions({ width: img.width, height: img.height });
         setIsProcessing(false);
       };
-      img.src = e.target?.result as string;
+
+      img.src = event.target?.result as string;
     };
+
     reader.readAsDataURL(file);
   };
 
-  const handleDragOver = (e: DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
+  const handleDragOver = (event: DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
     setIsDragging(true);
   };
 
@@ -89,18 +99,20 @@ export default function WatermarkGenerator() {
     setIsDragging(false);
   };
 
-  const handleDrop = (e: DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
+  const handleDrop = (event: DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
     setIsDragging(false);
 
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      processFile(e.dataTransfer.files[0]);
+    const droppedFile = event.dataTransfer.files?.[0];
+    if (droppedFile) {
+      processFile(droppedFile);
     }
   };
 
-  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      processFile(e.target.files[0]);
+  const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = event.target.files?.[0];
+    if (selectedFile) {
+      processFile(selectedFile);
     }
   };
 
@@ -111,7 +123,6 @@ export default function WatermarkGenerator() {
   const handleDownload = () => {
     if (!previewUrl) return;
 
-    // Construct download filename (e.g. originalName_watermarked.jpg)
     const lastDotIndex = fileName.lastIndexOf(".");
     const baseName = lastDotIndex !== -1 ? fileName.substring(0, lastDotIndex) : fileName;
     const extension = fileType === "image/png" ? "png" : "jpg";
@@ -129,157 +140,176 @@ export default function WatermarkGenerator() {
     setPreviewUrl(null);
     setFileName("");
     setDimensions(null);
+    setErrorMessage(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
   };
 
   return (
-    <main className="min-h-screen bg-charcoal text-cream font-sans pb-20">
-      {/* Top Header / Navigation */}
-      <header className="bg-charcoal-light/50 backdrop-blur-xl sticky top-0 z-10 py-6">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 flex items-center justify-between">
+    <div className="min-h-screen bg-charcoal text-cream">
+      <a
+        href="#wm-main"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-golden focus:px-4 focus:py-3 focus:text-sm focus:font-semibold focus:text-charcoal"
+      >
+        Langsung ke alat watermark
+      </a>
+
+      <header className="border-b border-charcoal-border bg-charcoal">
+        <nav
+          aria-label="Navigasi alat watermark"
+          className="mx-auto flex h-16 max-w-5xl items-center justify-between px-4 sm:h-20 sm:px-6 lg:px-8"
+        >
           <Link
             href="/"
-            className="inline-flex items-center gap-2 text-sm font-semibold text-cream/70 transition-colors hover:text-golden"
+            className="inline-flex min-h-[44px] items-center gap-2 rounded-md pr-3 text-sm font-semibold text-ink-light-secondary transition-colors hover:text-golden"
           >
-            <ArrowLeft className="h-4 w-4" />
-            Kembali ke Landing Page
+            <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+            Kembali ke Beranda
           </Link>
 
-          <div className="flex items-center gap-2">
-            <span className="font-[var(--font-playfair)] text-lg font-bold tracking-wide">
-              Dapoer <span className="text-golden">Bulek</span>
-            </span>
-          </div>
-        </div>
+          <span className="font-serif text-lg font-bold text-cream">
+            Dapoer <span className="text-golden">Bulek</span>
+          </span>
+        </nav>
       </header>
 
-      {/* Main Content Container */}
-      <div className="mx-auto max-w-4xl px-4 pt-12 sm:px-6 lg:px-8">
-
-        {/* Title Area */}
-        <div className="text-center mb-12">
-          <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-golden/10 px-4 py-1.5">
-            <Sparkles className="h-3.5 w-3.5 text-golden" />
-            <span className="text-xs font-semibold tracking-wider text-golden uppercase">
-              Foto Produk Tools
-            </span>
-          </div>
-          <h1 className="font-[var(--font-playfair)] text-3xl font-bold text-cream sm:text-4xl lg:text-5xl">
-            Watermark <span className="text-golden">Generator</span>
+      <main id="wm-main" tabIndex={-1} className="mx-auto max-w-3xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
+        <div className="border-b border-charcoal-border pb-8">
+          <p className="text-sm font-semibold text-golden">Alat Internal Dapur</p>
+          <h1 className="mt-2 font-serif text-[clamp(1.75rem,3.6vw,2.75rem)] font-bold leading-tight text-cream">
+            Generator Watermark Foto Produk
           </h1>
-          <p className="mt-4 text-base text-cream/60 max-w-xl mx-auto">
-            Unggah foto hidangan Dapoer Bulek untuk menambahkan watermark resmi secara otomatis sebelum dibagikan.
+          <p className="mt-3 max-w-xl text-base leading-relaxed text-ink-light-secondary">
+            Tambahkan tanda air <span className="font-semibold text-cream">dapoerbulek_354</span> di bagian tengah foto hidangan sebelum dipublikasikan ke media sosial.
           </p>
         </div>
 
-        {/* Canvas element (hidden) */}
         <canvas ref={canvasRef} className="hidden" />
 
-        {/* Upload and Processing State Card */}
-        {!previewUrl ? (
+        {errorMessage && (
           <div
-            onDragOver={handleDragOver}
-            onDragLeave={handleDragLeave}
-            onDrop={handleDrop}
-            onClick={triggerFileInput}
-            className={`cursor-pointer rounded-3xl p-12 transition-all duration-300 flex flex-col items-center justify-center min-h-[350px] text-center ${isDragging
-              ? "bg-golden/10 text-golden"
-              : "bg-charcoal-light/50 hover:bg-charcoal-light/80 text-cream/70"
-              }`}
+            role="alert"
+            className="mt-6 flex items-start gap-3 rounded-lg border border-red-400/40 bg-[#2B1414] p-4 text-sm text-[#FCA5A5]"
           >
-            <input
-              type="file"
-              ref={fileInputRef}
-              onChange={handleFileChange}
-              accept="image/png, image/jpeg, image/jpg"
-              className="hidden"
-            />
-
-            {isProcessing ? (
-              <div className="flex flex-col items-center gap-4">
-                <div className="h-12 w-12 rounded-full bg-golden/10 flex items-center justify-center animate-spin">
-                  <div className="h-6 w-6 rounded-full border-2 border-golden border-t-transparent" />
-                </div>
-                <h3 className="font-semibold text-lg text-cream">Memproses Gambar...</h3>
-                <p className="text-sm text-cream/50">Menerapkan watermark dapoerbulek_354</p>
-              </div>
-            ) : (
-              <div className="flex flex-col items-center">
-                <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-golden/10 text-golden">
-                  <UploadCloud className="h-8 w-8" />
-                </div>
-                <h3 className="font-[var(--font-playfair)] text-xl font-bold text-cream mb-2">
-                  Tarik & Lepaskan Gambar
-                </h3>
-                <p className="text-sm text-cream/50 mb-6 max-w-xs mx-auto">
-                  Atau klik untuk memilih berkas dari perangkat Anda. Mendukung file PNG, JPG, atau JPEG.
-                </p>
-                <div className="rounded-full bg-golden px-6 py-2.5 text-sm font-semibold text-charcoal">
-                  Pilih Gambar
-                </div>
-              </div>
-            )}
-          </div>
-        ) : (
-          /* Preview and Action controls */
-          <div className="space-y-8 animate-fade-in">
-            {/* Live Preview Area */}
-            <div className="rounded-3xl bg-charcoal-light/50 p-6 flex flex-col items-center justify-center">
-              <div className="w-full flex items-center justify-between mb-4 text-xs text-cream/50 px-2">
-                <span className="flex items-center gap-1">
-                  <ImageIcon className="h-3.5 w-3.5" />
-                  {fileName}
-                </span>
-                {dimensions && (
-                  <span>
-                    Resolusi: {dimensions.width} &times; {dimensions.height} px
-                  </span>
-                )}
-              </div>
-
-              {/* Image Preview Container */}
-              <div className="relative max-h-[500px] w-full overflow-hidden rounded-2xl bg-charcoal flex items-center justify-center">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={previewUrl}
-                  alt="Preview watermarked"
-                  className="max-h-[480px] w-auto object-contain rounded-xl"
-                />
-              </div>
-            </div>
-
-            {/* Actions */}
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-              <button
-                onClick={handleDownload}
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-golden to-golden-dark px-8 py-4 text-base font-semibold text-charcoal transition-all duration-300 hover:scale-105"
-              >
-                <Download className="h-5 w-5" />
-                Download Gambar Berwatermark
-              </button>
-
-              <button
-                onClick={handleReset}
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-full bg-cream/5 px-8 py-4 text-base font-semibold text-cream transition-all duration-300 hover:bg-cream/10 hover:text-golden"
-              >
-                <RotateCcw className="h-5 w-5" />
-                Reset / Unggah Ulang
-              </button>
-            </div>
-
-            {/* Instruction Tip */}
-            <div className="flex items-start gap-3 rounded-2xl bg-golden/5 p-4 text-sm text-golden/80 max-w-2xl mx-auto">
-              <CheckCircle2 className="h-5 w-5 shrink-0 mt-0.5" />
-              <div>
-                <span className="font-semibold">Info Pemrosesan:</span> Watermark <span className="font-mono">dapoerbulek_354</span> dipasang dengan opasitas 50% di tengah gambar. Skala tulisan otomatis menyesuaikan dengan dimensi gambar asli agar proporsional dan tidak pecah saat diunduh.
-              </div>
-            </div>
+            <AlertCircle className="mt-0.5 h-5 w-5 shrink-0" aria-hidden="true" />
+            <p>{errorMessage}</p>
           </div>
         )}
 
-      </div>
-    </main>
+        <div className="mt-8">
+          {!previewUrl ? (
+            <div
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+              className={`flex min-h-[300px] flex-col items-center justify-center rounded-xl border-2 border-dashed p-6 text-center transition-colors sm:p-10 ${
+                isDragging
+                  ? "border-golden bg-charcoal-surface"
+                  : "border-charcoal-border bg-charcoal-surface"
+              }`}
+            >
+              <input
+                id="wm-file-input"
+                type="file"
+                ref={fileInputRef}
+                onChange={handleFileChange}
+                accept="image/png, image/jpeg, image/jpg, image/webp"
+                className="sr-only"
+              />
+
+              {isProcessing ? (
+                <div aria-live="polite" className="flex flex-col items-center gap-3">
+                  <div
+                    className="h-10 w-10 animate-spin rounded-full border-2 border-golden border-t-transparent"
+                    aria-hidden="true"
+                  />
+                  <p className="text-base font-semibold text-cream">Memproses gambar...</p>
+                  <p className="text-sm text-ink-light-muted">
+                    Menambahkan tanda air dapoerbulek_354
+                  </p>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center">
+                  <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg border border-charcoal-border bg-charcoal text-golden">
+                    <UploadCloud className="h-6 w-6" aria-hidden="true" />
+                  </div>
+                  <h2 className="font-serif text-xl font-bold text-cream">
+                    Unggah Foto Hidangan
+                  </h2>
+                  <p className="mt-2 max-w-sm text-sm leading-relaxed text-ink-light-secondary">
+                    Seret berkas ke kotak ini atau tekan tombol di bawah. Mendukung format PNG, JPG, JPEG, dan WebP.
+                  </p>
+                  <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+                    <button
+                      type="button"
+                      onClick={triggerFileInput}
+                      className="inline-flex min-h-[44px] items-center justify-center rounded-full bg-golden px-6 py-2.5 text-sm font-semibold text-charcoal transition-colors hover:bg-golden-dark active:bg-golden-dark"
+                    >
+                      Pilih Foto dari Perangkat
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="space-y-6">
+              <div className="rounded-xl border border-charcoal-border bg-charcoal-surface p-4 sm:p-6">
+                <div className="mb-4 flex flex-wrap items-center justify-between gap-2 text-xs text-ink-light-secondary">
+                  <span className="inline-flex items-center gap-1.5 font-medium">
+                    <ImageIcon className="h-4 w-4 text-golden" aria-hidden="true" />
+                    {fileName}
+                  </span>
+                  {dimensions && (
+                    <span>
+                      Resolusi asli: {dimensions.width} &times; {dimensions.height} px
+                    </span>
+                  )}
+                </div>
+
+                <div className="flex items-center justify-center overflow-hidden rounded-lg border border-charcoal-border bg-charcoal p-2">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={previewUrl}
+                    alt={`Pratinjau ${fileName} dengan watermark dapoerbulek_354`}
+                    width={dimensions?.width}
+                    height={dimensions?.height}
+                    className="max-h-[480px] h-auto w-auto rounded object-contain"
+                  />
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-3 sm:flex-row">
+                <button
+                  type="button"
+                  onClick={handleDownload}
+                  className="inline-flex min-h-[48px] flex-1 items-center justify-center gap-2 rounded-full bg-golden px-6 py-3 text-base font-semibold text-charcoal transition-colors hover:bg-golden-dark active:bg-golden-dark"
+                >
+                  <Download className="h-5 w-5" aria-hidden="true" />
+                  Unduh Gambar Berwatermark
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleReset}
+                  className="inline-flex min-h-[48px] items-center justify-center gap-2 rounded-full border border-charcoal-border bg-charcoal-surface px-6 py-3 text-base font-semibold text-cream transition-colors hover:border-golden hover:text-golden"
+                >
+                  <RotateCcw className="h-5 w-5" aria-hidden="true" />
+                  Unggah Foto Lain
+                </button>
+              </div>
+
+              <div className="flex items-start gap-3 rounded-lg border border-charcoal-border bg-charcoal-surface p-4 text-sm text-ink-light-secondary">
+                <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-golden" aria-hidden="true" />
+                <p>
+                  <span className="font-semibold text-cream">Catatan pemrosesan:</span>{" "}
+                  Tanda air <span className="font-mono text-cream">dapoerbulek_354</span> dipasang di tengah gambar dengan opasitas 40% dan ukuran huruf proporsional terhadap lebar gambar asli.
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
+      </main>
+    </div>
   );
 }

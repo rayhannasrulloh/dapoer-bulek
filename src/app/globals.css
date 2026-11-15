@@ -2,100 +2,74 @@
 
 @theme inline {
   --color-charcoal: #1A1A1A;
-  --color-charcoal-light: #2A2A2A;
-  --color-charcoal-lighter: #3A3A3A;
+  --color-charcoal-surface: #242424;
+  --color-charcoal-border: #333333;
   --color-golden: #F59E0B;
   --color-golden-dark: #D97706;
-  --color-golden-light: #FBBF24;
+  --color-amber-text: #B45309;
+  --color-amber-text-strong: #92400E;
   --color-cream: #FAFAF9;
-  --color-cream-dark: #E7E5E4;
-  --color-warm-gray: #A8A29E;
+  --color-cream-muted: #F3F1ED;
+  --color-cream-border: #E7E5E4;
+  --color-ink-light-secondary: #D6D3D1;
+  --color-ink-light-muted: #A8A29E;
+  --color-ink-dark-secondary: #44403C;
+  --color-ink-dark-muted: #57534E;
 
-  --font-serif: "Playfair Display", Georgia, serif;
-  --font-sans: "Inter", system-ui, sans-serif;
-
-  --animate-fade-in: fade-in 0.8s ease-out forwards;
-  --animate-fade-in-up: fade-in-up 0.8s ease-out forwards;
-  --animate-fade-in-down: fade-in-down 0.6s ease-out forwards;
-  --animate-scale-in: scale-in 0.5s ease-out forwards;
-  --animate-slide-in-left: slide-in-left 0.6s ease-out forwards;
-  --animate-slide-in-right: slide-in-right 0.6s ease-out forwards;
-  --animate-pulse-glow: pulse-glow 2s ease-in-out infinite;
-  --animate-float: float 3s ease-in-out infinite;
+  --font-serif: var(--font-playfair), Georgia, serif;
+  --font-sans: var(--font-inter), system-ui, -apple-system, sans-serif;
 }
 
-@keyframes fade-in {
-  from { opacity: 0; }
-  to { opacity: 1; }
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 84px;
+  }
+
+  body {
+    background-color: #1A1A1A;
+    color: #FAFAF9;
+    font-family: var(--font-sans);
+    overflow-x: clip;
+  }
+
+  a[href],
+  button,
+  summary,
+  select,
+  label[for],
+  [role="button"],
+  [role="tab"],
+  input[type="file"] {
+    cursor: pointer;
+  }
+
+  :disabled,
+  [aria-disabled="true"] {
+    cursor: not-allowed;
+  }
+
+  :focus-visible {
+    outline: 2px solid #F59E0B;
+    outline-offset: 3px;
+  }
+
+  ::selection {
+    background: rgba(245, 158, 11, 0.28);
+    color: #FAFAF9;
+  }
 }
 
-@keyframes fade-in-up {
-  from { opacity: 0; transform: translateY(30px); }
-  to { opacity: 1; transform: translateY(0); }
-}
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
 
-@keyframes fade-in-down {
-  from { opacity: 0; transform: translateY(-20px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes scale-in {
-  from { opacity: 0; transform: scale(0.9); }
-  to { opacity: 1; transform: scale(1); }
-}
-
-@keyframes slide-in-left {
-  from { opacity: 0; transform: translateX(-40px); }
-  to { opacity: 1; transform: translateX(0); }
-}
-
-@keyframes slide-in-right {
-  from { opacity: 0; transform: translateX(40px); }
-  to { opacity: 1; transform: translateX(0); }
-}
-
-@keyframes pulse-glow {
-  0%, 100% { box-shadow: 0 0 20px rgba(245, 158, 11, 0.3); }
-  50% { box-shadow: 0 0 40px rgba(245, 158, 11, 0.6); }
-}
-
-@keyframes float {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-10px); }
-}
-
-html {
-  scroll-behavior: smooth;
-  scroll-padding-top: 80px;
-}
-
-body {
-  background: #1A1A1A;
-  color: #FAFAF9;
-  font-family: "Inter", system-ui, sans-serif;
-  overflow-x: hidden;
-}
-
-/* Custom scrollbar */
-::-webkit-scrollbar {
-  width: 8px;
-}
-
-::-webkit-scrollbar-track {
-  background: #1A1A1A;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #3A3A3A;
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #F59E0B;
-}
-
-/* Selection color */
-::selection {
-  background: rgba(245, 158, 11, 0.3);
-  color: #FAFAF9;
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
