@@ -31,9 +31,9 @@ Dial: ENERGY 2 / RHYTHM 3 / MOTION 1
 ## Radius, Elevation & Identity Motif
 - **Deliberate Radius Hierarchy:** Square/editorial `rounded-sm` / `rounded-lg` (8px-12px) for photography frames and structured containers; `rounded-md` (6px-8px) for category filters and secondary controls; `rounded-full` reserved selectively for primary WhatsApp/navigation CTAs so pills do not flatten the visual hierarchy.
 - **Flat Grounded Planes:** Rely on crisp 1px structural borders (`#E7E5E4` on light, `#2E2E2E` on dark) and surface contrast (`#1A1A1A` vs `#FAFAF9`) instead of blurry drop shadows or glowing orbs. Glassmorphism is limited strictly to the scrolled sticky navbar (`backdrop-blur-md`).
-- **Identity Motif:** Thin golden hairline rules (`#F59E0B` / `#B45309`) paired with Playfair Display headings and 1:1 natural-ratio food photography (`public/images/*.png`).
+- **Identity Motif:** Thin golden hairline rules (`#F59E0B` / `#B45309`) paired with Playfair Display headings and framed kitchen food photography (`public/images/real-images/*.jpg` and `public/images/*.png`).
 
 ## Functional & Content Rules
-- Every menu item preserves natural 1:1 photography (`width={1024} height={1024}` or `aspect-square`) with clear portion / minimum order context and a pre-filled `https://wa.me/6282193562480?text=...` CTA.
+- Every menu item preserves intrinsic image `width` and `height` inside clean, orientation-matched containers (`aspect-square` for overhead tumpeng/tampah/tart shots, `aspect-[4/3]` for wide nasi kotak and ingkung spreads) with clear portion / minimum order context and a pre-filled `https://wa.me/6282193562480?text=...` CTA.
 - Zero invented metrics (no "500+ Pesanan", no "100% Kepuasan", no "4.9 Rating") and zero fictional customer testimonials.
 - Every anchor, button, tab, mobile drawer, and external WhatsApp/Instagram/Google Maps link works end-to-end with >= 44px tap targets and full keyboard accessibility.
