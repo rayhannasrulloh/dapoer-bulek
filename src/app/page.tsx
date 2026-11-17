@@ -2,7 +2,19 @@
 
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
-import { Menu, MessageCircle, MapPin, Phone, X } from "lucide-react";
+import { Check, Menu, MessageCircle, MapPin, Phone, Plus, X } from "lucide-react";
+import {
+  CATEGORIES,
+  Category,
+  INSTAGRAM_URL,
+  MAPS_URL,
+  MENU_GROUPS,
+  MENU_ITEMS,
+  MenuItem,
+  OrderSelectionItem,
+  getWhatsAppGeneralLink,
+} from "@/data/menu";
+import { PreOrderBuilder } from "@/components/PreOrderBuilder";
 
 function InstagramIcon({ className }: { className?: string }) {
   return (
@@ -26,263 +38,11 @@ function InstagramIcon({ className }: { className?: string }) {
 
 const NAV_LINKS = [
   { label: "Menu", href: "#menu" },
+  { label: "Buat Pesanan", href: "#pesan" },
   { label: "Tentang Dapur", href: "#about" },
   { label: "Galeri", href: "#galeri" },
-  { label: "Pre-Order & Lokasi", href: "#preorder" },
+  { label: "Lokasi", href: "#preorder" },
   { label: "Kontak", href: "#contact" },
-];
-
-type MenuGroup =
-  | "Tumpeng & Tampah"
-  | "Nasi Kotak & Lauk"
-  | "Kue, Pudding & Snack";
-
-type Category = "Semua" | MenuGroup;
-
-const CATEGORIES: Category[] = [
-  "Semua",
-  "Tumpeng & Tampah",
-  "Nasi Kotak & Lauk",
-  "Kue, Pudding & Snack",
-];
-
-interface MenuGroupMeta {
-  id: MenuGroup;
-  number: string;
-  title: string;
-  subtitle: string;
-  aspectClass: string;
-  desktopGridClass: string;
-}
-
-const MENU_GROUPS: MenuGroupMeta[] = [
-  {
-    id: "Tumpeng & Tampah",
-    number: "01",
-    title: "Tumpeng & Tampah",
-    subtitle:
-      "Tumpeng kerucut klasik, bentuk custom acara, hingga tampah nasi liwet dengan lauk lengkap.",
-    aspectClass: "aspect-square",
-    desktopGridClass: "grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3",
-  },
-  {
-    id: "Nasi Kotak & Lauk",
-    number: "02",
-    title: "Nasi Kotak & Ayam Ingkung",
-    subtitle:
-      "Paket nasi kotak perorangan dan ayam ingkung utuh berbumbu rempah untuk rapat maupun kenduri.",
-    aspectClass: "aspect-[4/3]",
-    desktopGridClass: "grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3",
-  },
-  {
-    id: "Kue, Pudding & Snack",
-    number: "03",
-    title: "Pie Buah, Pudding & Snack Box",
-    subtitle:
-      "Pie buah tart custom, aneka pudding acara, tumpeng buah segar, dan kotak kue jajanan pasar.",
-    aspectClass: "aspect-square",
-    desktopGridClass:
-      "grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4",
-  },
-];
-
-interface MenuItem {
-  name: string;
-  category: MenuGroup;
-  portionInfo: string;
-  leadTime: string;
-  description: string;
-  spotlightNote?: string;
-  image: string;
-  width: number;
-  height: number;
-  objectPosition?: string;
-  featured?: boolean;
-}
-
-const MENU_ITEMS: MenuItem[] = [
-  {
-    name: "Tumpeng Nasi Kuning Klasik",
-    category: "Tumpeng & Tampah",
-    portionInfo: "Porsi 10-15 orang",
-    leadTime: "Pre-Order min. H-3",
-    description:
-      "Nasi kuning pulen berbentuk kerucut dengan lauk lengkap: telur rebus, mie goreng, tempe orek, serundeng, tahu dan tempe bacem, urap sayur, serta ukiran buah dan sayur segar.",
-    spotlightNote:
-      "Tersedia penyesuaian porsi dan permintaan lauk tambahan untuk acara syukuran, peresmian, maupun ulang tahun.",
-    image: "/images/real-images/tumpeng-300k.jpg",
-    width: 3000,
-    height: 4000,
-    objectPosition: "50% 50%",
-    featured: true,
-  },
-  {
-    name: "Tumpeng Nasi Liwet Spesial",
-    category: "Tumpeng & Tampah",
-    portionInfo: "Porsi 10-15 orang",
-    leadTime: "Pre-Order min. H-3",
-    description:
-      "Kerucut nasi liwet gurih berbumbu rempah dengan ayam panggang utuh, sambal dalam wadah batok, mie goreng, perkedel, ikan asin goreng, tempe orek, tahu goreng, serundeng, dan urap sayur.",
-    image: "/images/real-images/tumpeng-nasi-liwet.jpg",
-    width: 6000,
-    height: 8000,
-    objectPosition: "50% 52%",
-  },
-  {
-    name: "Tumpeng Kotak Prasmanan",
-    category: "Tumpeng & Tampah",
-    portionInfo: "Porsi 10-15 orang",
-    leadTime: "Pre-Order min. H-3",
-    description:
-      "Tumpeng nasi kuning dalam wadah kotak tampah rapi dilengkapi ayam berbumbu, perkedel kentang, telur puyuh, telur rebus, tempe orek, mie goreng, urap sayur, dan sambal dalam wadah buah nanas.",
-    image: "/images/real-images/tumpeng-kotak.jpg",
-    width: 4000,
-    height: 3000,
-    objectPosition: "50% 50%",
-  },
-  {
-    name: "Tumpeng Bentuk Hati Custom",
-    category: "Tumpeng & Tampah",
-    portionInfo: "Porsi & ucapan custom",
-    leadTime: "Pre-Order min. H-3",
-    description:
-      "Nasi kuning dibentuk hati dengan kartu ucapan acara keluarga, disajikan bersama ayam bakar berbumbu, bihun goreng, tempe orek, serundeng, urap sayur, dan ukiran buah.",
-    image: "/images/real-images/tumpeng-love.jpg",
-    width: 4000,
-    height: 3000,
-    objectPosition: "43% 50%",
-  },
-  {
-    name: "Tumpeng Angka & Tema Acara",
-    category: "Tumpeng & Tampah",
-    portionInfo: "Porsi besar / acara lembaga",
-    leadTime: "Pre-Order min. H-3",
-    description:
-      "Tumpeng nasi kuning custom berbentuk angka perayaan yang dipadukan kerucut nasi kuning, ayam goreng, tahu dan tempe goreng, telur rebus, mie goreng, orek tempe, dan urap sayur.",
-    image: "/images/real-images/tumpeng-hut-73.jpg",
-    width: 4000,
-    height: 3000,
-    objectPosition: "45% 50%",
-  },
-  {
-    name: "Tumpeng Sate & Lontong",
-    category: "Tumpeng & Tampah",
-    portionInfo: "Sajian keluarga & ulang tahun",
-    leadTime: "Pre-Order min. H-3",
-    description:
-      "Variasi tumpeng non-nasi dengan potongan lontong di tengah, puluhan tusuk sate berbumbu kecap dan bawang cabai, serta bumbu kacang dan acar segar di dalam wadah nanas.",
-    image: "/images/real-images/tumpeng-sate-lontong.jpg",
-    width: 4000,
-    height: 2256,
-    objectPosition: "49% 50%",
-  },
-  {
-    name: "Nasi Liwet Tampah Sunda",
-    category: "Tumpeng & Tampah",
-    portionInfo: "Sajian kelompok atau keluarga",
-    leadTime: "Pre-Order min. H-2",
-    description:
-      "Nasi liwet gurih bertabur cabai dan teri di atas tampah bambu beralas daun pisang, dilengkapi ayam bakar, tahu, tempe, ikan asin goreng, sambal, dan lalapan daun kemangi.",
-    image: "/images/real-images/nasi-liwet.jpg",
-    width: 1536,
-    height: 1920,
-    objectPosition: "50% 42%",
-  },
-  {
-    name: "Ayam Ingkung Bakar",
-    category: "Nasi Kotak & Lauk",
-    portionInfo: "Per ekor utuh / paket acara",
-    leadTime: "Pre-Order min. H-2",
-    description:
-      "Ayam utuh dimasak ungkep dengan rempah tradisional lalu dibakar kecokelatan di atas daun pisang, lengkap dengan selada, timun, wortel, dan sambal terpisah.",
-    image: "/images/real-images/ayam-ingkung-6.jpg",
-    width: 4000,
-    height: 2256,
-    objectPosition: "50% 50%",
-  },
-  {
-    name: "Nasi Kotak Ayam Geprek",
-    category: "Nasi Kotak & Lauk",
-    portionInfo: "Minimal 20 kotak",
-    leadTime: "Pre-Order min. H-2",
-    description:
-      "Paket nasi kotak praktis berisi nasi putih bungkus rapi, ayam goreng krispi, sambal cabai merah segar, irisan timun, dan daun kemangi untuk rapat maupun syukuran.",
-    image: "/images/real-images/nasi-kotak-ayam-geprek.jpg",
-    width: 4000,
-    height: 2256,
-    objectPosition: "50% 50%",
-  },
-  {
-    name: "Nasi Kotak Nasi Liwet",
-    category: "Nasi Kotak & Lauk",
-    portionInfo: "Minimal 20 kotak",
-    leadTime: "Pre-Order min. H-2",
-    description:
-      "Nasi liwet bungkus kerucut daun pisang dalam kotak rapi bersama ayam goreng, mie goreng, tempe orek, ikan asin kering, dan sambal dalam wadah tertutup.",
-    image: "/images/real-images/nasi-kotak-liwet.jpg",
-    width: 3000,
-    height: 4000,
-    objectPosition: "50% 50%",
-  },
-  {
-    name: "Pie Buah Tart Custom",
-    category: "Kue, Pudding & Snack",
-    portionInfo: "Diameter & topping custom",
-    leadTime: "Pre-Order min. H-2",
-    description:
-      "Kulit pie ukuran besar yang renyah dengan isian vla vanila lembut, topping potongan jeruk, kiwi, stroberi, ceri, cokelat, serta topper ucapan ulang tahun sesuai permintaan.",
-    spotlightNote:
-      "Pilihan buah dan tambahan cokelat atau topper ucapan dapat disesuaikan langsung lewat WhatsApp.",
-    image: "/images/real-images/pie-buah.jpg",
-    width: 3000,
-    height: 4000,
-    objectPosition: "50% 24%",
-    featured: true,
-  },
-  {
-    name: "Tumpeng Pudding Cake",
-    category: "Kue, Pudding & Snack",
-    portionInfo: "Diameter loyang menyesuaikan",
-    leadTime: "Pre-Order min. H-2",
-    description:
-      "Pudding berlapis berbentuk tumpeng dengan pilihan rasa dan warna yang dapat disesuaikan untuk selamatan maupun kejutan ulang tahun.",
-    image: "/images/pudding-tumpeng.png",
-    width: 1024,
-    height: 1024,
-  },
-  {
-    name: "Pudding Cake Birthday",
-    category: "Kue, Pudding & Snack",
-    portionInfo: "Desain & ucapan custom",
-    leadTime: "Pre-Order min. H-2",
-    description:
-      "Pudding ulang tahun dengan kombinasi vla dan dekorasi buah atau karakter sesuai permintaan tema acara.",
-    image: "/images/pudding-birthday.png",
-    width: 1024,
-    height: 1024,
-  },
-  {
-    name: "Tumpeng Buah",
-    category: "Kue, Pudding & Snack",
-    portionInfo: "Rangkaian buah segar utuh",
-    leadTime: "Pre-Order min. H-3",
-    description:
-      "Susunan aneka buah potong segar berbentuk tumpeng sebagai alternatif hantaran atau sajian penutup acara keluarga.",
-    image: "/images/tumpeng-buah.png",
-    width: 1024,
-    height: 1024,
-  },
-  {
-    name: "Snack Box Jajanan Pasar",
-    category: "Kue, Pudding & Snack",
-    portionInfo: "Minimal 15 kotak",
-    leadTime: "Pre-Order min. H-2",
-    description:
-      "Isian kue basah dan gurih pilihan seperti klepon, onde-onde, kue lapis, dadar gulung, lemper, dan risoles untuk rapat atau pengajian.",
-    image: "/images/snack-box.png",
-    width: 1024,
-    height: 1024,
-  },
 ];
 
 const KITCHEN_STANDARDS = [
@@ -347,22 +107,6 @@ const GALLERY_HIGHLIGHTS: GalleryHighlight[] = [
     caption: "Tampah Nasi Liwet Sunda beralas daun pisang",
   },
 ];
-
-const WHATSAPP_NUMBER = "6282193562480";
-const INSTAGRAM_URL = "https://www.instagram.com/dapoerbule_354/";
-const MAPS_URL =
-  "https://www.google.com/maps/search/?api=1&query=Dapoer+Bulek+Dayamurni+Tumijajar+Tulang+Bawang+Barat+Lampung";
-
-function getWhatsAppMenuLink(menuName: string): string {
-  const text = `Halo Dapoer Bulek, saya ingin menanyakan harga, porsi, dan jadwal Pre-Order untuk ${menuName}.`;
-  return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(text)}`;
-}
-
-function getWhatsAppGeneralLink(): string {
-  const text =
-    "Halo Dapoer Bulek, saya ingin berkonsultasi mengenai menu dan pemesanan catering.";
-  return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(text)}`;
-}
 
 function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -527,13 +271,11 @@ function HeroSection() {
                 Lihat Daftar Menu
               </a>
               <a
-                href={getWhatsAppGeneralLink()}
-                target="_blank"
-                rel="noopener noreferrer"
+                href="#pesan"
                 className="inline-flex min-h-[48px] items-center justify-center gap-2 rounded-full border border-charcoal-border bg-charcoal-surface px-6 py-3 text-base font-semibold text-cream transition-colors hover:border-golden hover:text-golden"
               >
                 <MessageCircle className="h-5 w-5" aria-hidden="true" />
-                Konsultasi WhatsApp
+                Susun Format Pesanan
               </a>
             </div>
 
@@ -592,7 +334,15 @@ function HeroSection() {
   );
 }
 
-function MenuSpotlightCard({ item }: { item: MenuItem }) {
+function MenuSpotlightCard({
+  item,
+  selectedQty,
+  onAddItem,
+}: {
+  item: MenuItem;
+  selectedQty: number;
+  onAddItem: (menuId: string) => void;
+}) {
   return (
     <article className="grid overflow-hidden rounded-xl border border-cream-border bg-white lg:grid-cols-12">
       <div className="overflow-hidden border-b border-cream-border bg-cream-muted lg:col-span-5 lg:border-b-0 lg:border-r">
@@ -625,16 +375,35 @@ function MenuSpotlightCard({ item }: { item: MenuItem }) {
             {item.spotlightNote}
           </p>
         )}
-        <div className="mt-7">
-          <a
-            href={getWhatsAppMenuLink(item.name)}
-            target="_blank"
-            rel="noopener noreferrer"
+        <div className="mt-7 flex flex-wrap items-center gap-3">
+          <button
+            type="button"
+            onClick={() => onAddItem(item.id)}
             className="inline-flex min-h-[48px] items-center justify-center gap-2 rounded-full bg-golden px-7 py-3 text-sm font-semibold text-charcoal transition-colors hover:bg-golden-dark active:bg-golden-dark sm:text-base"
           >
-            <MessageCircle className="h-4 w-4" aria-hidden="true" />
-            Tanya &amp; Pesan {item.name}
-          </a>
+            {selectedQty > 0 ? (
+              <>
+                <Check className="h-4 w-4" aria-hidden="true" />
+                <span>
+                  Tambah Lagi ({selectedQty} {item.unitLabel} dipilih)
+                </span>
+              </>
+            ) : (
+              <>
+                <Plus className="h-4 w-4" aria-hidden="true" />
+                <span>Tambah {item.name} ke Pesanan</span>
+              </>
+            )}
+          </button>
+
+          {selectedQty > 0 && (
+            <a
+              href="#pesan"
+              className="inline-flex min-h-[48px] items-center justify-center rounded-full border border-[#78716C] bg-white px-5 py-3 text-sm font-semibold text-charcoal transition-colors hover:border-charcoal hover:bg-cream-muted"
+            >
+              Lihat Form Pesanan
+            </a>
+          )}
         </div>
       </div>
     </article>
@@ -645,10 +414,14 @@ function MenuCard({
   item,
   aspectClass,
   sizes,
+  selectedQty,
+  onAddItem,
 }: {
   item: MenuItem;
   aspectClass: string;
   sizes: string;
+  selectedQty: number;
+  onAddItem: (menuId: string) => void;
 }) {
   return (
     <article className="flex flex-col overflow-hidden rounded-lg border border-cream-border bg-white">
@@ -681,22 +454,54 @@ function MenuCard({
           {item.description}
         </p>
 
-        <a
-          href={getWhatsAppMenuLink(item.name)}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="mt-5 inline-flex min-h-[44px] w-full items-center justify-center gap-2 rounded-md bg-golden px-4 py-2.5 text-sm font-semibold text-charcoal transition-colors hover:bg-golden-dark active:bg-golden-dark"
-        >
-          <MessageCircle className="h-4 w-4" aria-hidden="true" />
-          Tanya &amp; Pesan via WhatsApp
-        </a>
+        <div className="mt-5 flex flex-col gap-2">
+          <button
+            type="button"
+            onClick={() => onAddItem(item.id)}
+            className="inline-flex min-h-[44px] w-full items-center justify-center gap-2 rounded-md bg-golden px-4 py-2.5 text-sm font-semibold text-charcoal transition-colors hover:bg-golden-dark active:bg-golden-dark"
+          >
+            {selectedQty > 0 ? (
+              <>
+                <Check className="h-4 w-4" aria-hidden="true" />
+                <span>
+                  Tambah Lagi ({selectedQty} {item.unitLabel})
+                </span>
+              </>
+            ) : (
+              <>
+                <Plus className="h-4 w-4" aria-hidden="true" />
+                <span>Tambah ke Format Pesanan</span>
+              </>
+            )}
+          </button>
+
+          {selectedQty > 0 && (
+            <a
+              href="#pesan"
+              className="inline-flex min-h-[44px] w-full items-center justify-center rounded-md border border-[#78716C] bg-white px-4 py-2 text-sm font-semibold text-charcoal transition-colors hover:border-charcoal hover:bg-cream-muted"
+            >
+              Lanjut ke Form Pesanan
+            </a>
+          )}
+        </div>
       </div>
     </article>
   );
 }
 
-function MenuCatalogSection() {
+function MenuCatalogSection({
+  selectedItems,
+  onAddItem,
+}: {
+  selectedItems: OrderSelectionItem[];
+  onAddItem: (menuId: string) => void;
+}) {
   const [activeCategory, setActiveCategory] = useState<Category>("Semua");
+
+  const getQtyForMenu = (menuId: string): number => {
+    const found = selectedItems.find((entry) => entry.menuId === menuId);
+    return found ? found.quantity : 0;
+  };
 
   const visibleGroups =
     activeCategory === "Semua"
@@ -723,8 +528,8 @@ function MenuCatalogSection() {
             </h2>
             <p className="mt-3 text-base leading-relaxed text-ink-dark-secondary">
               Pilih kategori sajian untuk melihat detail isi, porsi, dan waktu
-              pesan minimal. Harga dan variasi lauk menyesuaikan jumlah porsi
-              acara Anda.
+              pesan minimal. Tambahkan satu atau beberapa menu ke format pesanan
+              untuk dikirim lewat WhatsApp.
             </p>
           </div>
 
@@ -745,7 +550,7 @@ function MenuCatalogSection() {
                   className={`min-h-[44px] rounded-md border px-4 py-2 text-sm font-semibold transition-colors ${
                     isSelected
                       ? "border-charcoal bg-charcoal text-cream"
-                      : "border-cream-border bg-white text-ink-dark-secondary hover:border-charcoal hover:text-charcoal"
+                      : "border-[#78716C] bg-white text-ink-dark-secondary hover:border-charcoal hover:text-charcoal"
                   }`}
                 >
                   {category}
@@ -754,6 +559,23 @@ function MenuCatalogSection() {
             })}
           </div>
         </div>
+
+        {selectedItems.length > 0 && (
+          <div className="mt-6 flex flex-col gap-3 rounded-lg border border-charcoal bg-cream-muted px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-sm font-medium text-charcoal">
+              <span className="font-bold">
+                {selectedItems.length} jenis menu
+              </span>{" "}
+              sudah masuk ke format pesanan Pre-Order Anda.
+            </p>
+            <a
+              href="#pesan"
+              className="inline-flex min-h-[44px] shrink-0 items-center justify-center rounded-full bg-charcoal px-5 py-2 text-sm font-semibold text-cream transition-colors hover:bg-charcoal-surface"
+            >
+              Isi Jadwal &amp; Kirim Format
+            </a>
+          </div>
+        )}
 
         {!hasAnyItems ? (
           <div className="mt-10 rounded-lg border border-cream-border bg-white p-8 text-center">
@@ -801,16 +623,24 @@ function MenuCatalogSection() {
                     </p>
                   </div>
 
-                  {spotlightItem && <MenuSpotlightCard item={spotlightItem} />}
+                  {spotlightItem && (
+                    <MenuSpotlightCard
+                      item={spotlightItem}
+                      selectedQty={getQtyForMenu(spotlightItem.id)}
+                      onAddItem={onAddItem}
+                    />
+                  )}
 
                   {gridItems.length > 0 && (
                     <div className={`grid ${group.desktopGridClass}`}>
                       {gridItems.map((item) => (
                         <MenuCard
-                          key={item.name}
+                          key={item.id}
                           item={item}
                           aspectClass={group.aspectClass}
                           sizes={cardSizes}
+                          selectedQty={getQtyForMenu(item.id)}
+                          onAddItem={onAddItem}
                         />
                       ))}
                     </div>
@@ -921,7 +751,7 @@ function InstagramGallerySection() {
                 href={getWhatsAppGeneralLink()}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex min-h-[48px] items-center justify-center rounded-full border border-cream-border bg-white px-6 py-3 text-sm font-semibold text-charcoal transition-colors hover:border-charcoal sm:text-base"
+                className="inline-flex min-h-[48px] items-center justify-center rounded-full border border-[#78716C] bg-white px-6 py-3 text-sm font-semibold text-charcoal transition-colors hover:border-charcoal sm:text-base"
               >
                 Cek Ketersediaan Tanggal
               </a>
@@ -1140,6 +970,41 @@ function FooterSection() {
 }
 
 export default function Home() {
+  const [selectedItems, setSelectedItems] = useState<OrderSelectionItem[]>([]);
+
+  const handleAddItem = (menuId: string) => {
+    const menu = MENU_ITEMS.find((item) => item.id === menuId);
+    if (!menu) return;
+
+    setSelectedItems((prev) => {
+      const existing = prev.find((entry) => entry.menuId === menuId);
+      if (existing) {
+        return prev.map((entry) =>
+          entry.menuId === menuId
+            ? { ...entry, quantity: entry.quantity + 1 }
+            : entry
+        );
+      }
+      return [...prev, { menuId, quantity: menu.minOrder }];
+    });
+  };
+
+  const handleUpdateQuantity = (menuId: string, quantity: number) => {
+    setSelectedItems((prev) =>
+      prev.map((entry) =>
+        entry.menuId === menuId ? { ...entry, quantity } : entry
+      )
+    );
+  };
+
+  const handleRemoveItem = (menuId: string) => {
+    setSelectedItems((prev) => prev.filter((entry) => entry.menuId !== menuId));
+  };
+
+  const handleClearItems = () => {
+    setSelectedItems([]);
+  };
+
   return (
     <>
       <a
@@ -1151,7 +1016,17 @@ export default function Home() {
       <Navbar />
       <main id="main-content" tabIndex={-1}>
         <HeroSection />
-        <MenuCatalogSection />
+        <MenuCatalogSection
+          selectedItems={selectedItems}
+          onAddItem={handleAddItem}
+        />
+        <PreOrderBuilder
+          selectedItems={selectedItems}
+          onAddItem={handleAddItem}
+          onUpdateQuantity={handleUpdateQuantity}
+          onRemoveItem={handleRemoveItem}
+          onClearItems={handleClearItems}
+        />
         <AboutKitchenSection />
         <InstagramGallerySection />
         <PreOrderLocationSection />
