@@ -325,20 +325,26 @@ export function EventPackagePlanner({
                   key={`${rec.menu.id}-${rec.variant.id}`}
                   className="flex items-start gap-3 py-3.5 first:pt-0 last:pb-0"
                 >
-                  <div className="h-14 w-14 shrink-0 overflow-hidden rounded-md border border-charcoal-border bg-charcoal">
-                    <Image
-                      src={rec.menu.image}
-                      alt={rec.menu.name}
-                      width={rec.menu.width}
-                      height={rec.menu.height}
-                      sizes="56px"
-                      style={
-                        rec.menu.objectPosition
-                          ? { objectPosition: rec.menu.objectPosition }
-                          : undefined
-                      }
-                      className="aspect-square h-full w-full object-cover"
-                    />
+                  <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-md border border-charcoal-border bg-charcoal">
+                    {rec.menu.image && rec.menu.width && rec.menu.height ? (
+                      <Image
+                        src={rec.menu.image}
+                        alt={rec.menu.name}
+                        width={rec.menu.width}
+                        height={rec.menu.height}
+                        sizes="56px"
+                        style={
+                          rec.menu.objectPosition
+                            ? { objectPosition: rec.menu.objectPosition }
+                            : undefined
+                        }
+                        className="aspect-square h-full w-full object-cover"
+                      />
+                    ) : (
+                      <span className="px-1 text-center text-[10px] font-semibold leading-tight text-ink-light-muted">
+                        Foto menyusul
+                      </span>
+                    )}
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-baseline justify-between gap-2">

@@ -20,13 +20,16 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://www.dapoerbulek.web.id"),
   title: "Dapoer Bulek | Catering Tumpeng, Nasi Liwet & Kue di Tumijajar",
   description:
-    "Dapoer Bulek melayani pemesanan Pre-Order Tumpeng, Nasi Liwet Sunda, Ayam Ingkung, Nasi Kotak, Pudding Cake, dan Jajanan Pasar di Dayamurni, Tumijajar, Tulang Bawang Barat, Lampung sejak 2019.",
+    "Dapoer Bulek melayani pemesanan Tumpeng Nasi Kuning & Uduk, Nasi Liwet Sunda, Nasi Kotak, Nasi Bento, Nasi Bakar, Rice Bowl, Mie Gacoan, Ayam & Ikan Bakar, Pudding Tart, dan Jajanan Pasar di Dayamurni, Tumijajar, Tulang Bawang Barat, Lampung.",
   keywords: [
     "Dapoer Bulek",
     "Tumpeng Tulang Bawang Barat",
     "Catering Tumijajar",
     "Nasi Liwet Lampung",
-    "Pudding Cake",
+    "Nasi Bakar Tumijajar",
+    "Rice Bowl Dayamurni",
+    "Nasi Bento",
+    "Pudding Tart",
     "Jajanan Pasar",
     "Catering Dayamurni",
   ],

@@ -1,6 +1,7 @@
 export type MenuGroup =
   | "Tumpeng & Tampah"
-  | "Nasi Kotak & Lauk"
+  | "Nasi Kotak, Bento & Nasi Bakar"
+  | "Rice Bowl, Lauk & Menu Harian"
   | "Kue, Pudding & Snack";
 
 export type Category = "Semua" | MenuGroup;
@@ -8,7 +9,8 @@ export type Category = "Semua" | MenuGroup;
 export const CATEGORIES: Category[] = [
   "Semua",
   "Tumpeng & Tampah",
-  "Nasi Kotak & Lauk",
+  "Nasi Kotak, Bento & Nasi Bakar",
+  "Rice Bowl, Lauk & Menu Harian",
   "Kue, Pudding & Snack",
 ];
 
@@ -27,28 +29,36 @@ export const MENU_GROUPS: MenuGroupMeta[] = [
     number: "01",
     title: "Tumpeng & Tampah",
     subtitle:
-      "Tumpeng kerucut klasik, bentuk custom acara, hingga tampah nasi liwet dengan lauk lengkap.",
+      "Tumpeng nasi kuning atau nasi uduk, bentuk custom acara, hingga tampah nasi liwet dengan lauk lengkap.",
     aspectClass: "aspect-square",
     desktopGridClass: "grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3",
   },
   {
-    id: "Nasi Kotak & Lauk",
+    id: "Nasi Kotak, Bento & Nasi Bakar",
     number: "02",
-    title: "Nasi Kotak & Ayam Ingkung",
+    title: "Nasi Kotak, Bento & Nasi Bakar",
     subtitle:
-      "Paket nasi kotak perorangan dan ayam ingkung utuh berbumbu rempah untuk rapat maupun kenduri.",
+      "Paket nasi kotak acara, nasi bento praktis, hingga nasi bakar aneka isian gurih.",
     aspectClass: "aspect-[4/3]",
-    desktopGridClass: "grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3",
+    desktopGridClass: "grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4",
+  },
+  {
+    id: "Rice Bowl, Lauk & Menu Harian",
+    number: "03",
+    title: "Rice Bowl, Lauk & Menu Harian",
+    subtitle:
+      "Sajian porsi satuan mulai dari rice bowl, mie gacoan, chicken wing, aneka bakaran, pepes, hingga crispy seafood. Bisa pesan hari H atau H-1 bila stok kosong.",
+    aspectClass: "aspect-[4/3]",
+    desktopGridClass: "grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4",
   },
   {
     id: "Kue, Pudding & Snack",
-    number: "03",
+    number: "04",
     title: "Pie Buah, Pudding & Snack Box",
     subtitle:
-      "Pie buah tart custom, aneka pudding acara, tumpeng buah segar, dan kotak kue jajanan pasar.",
+      "Pie buah tart custom, pudding tart, tumpeng pudding, tumpeng buah segar, dan kotak kue jajanan pasar.",
     aspectClass: "aspect-square",
-    desktopGridClass:
-      "grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4",
+    desktopGridClass: "grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4",
   },
 ];
 
@@ -64,17 +74,18 @@ export interface MenuItem {
   category: MenuGroup;
   portionInfo: string;
   leadTime: string;
-  leadDays: 2 | 3;
+  leadDays: 0 | 2 | 3;
   minOrder: number;
   unitLabel: string;
   supportsGreetingCard?: boolean;
   description: string;
   spotlightNote?: string;
+  variantSummary?: string;
   variants: MenuVariant[];
   notePlaceholder?: string;
-  image: string;
-  width: number;
-  height: number;
+  image?: string;
+  width?: number;
+  height?: number;
   objectPosition?: string;
   featured?: boolean;
 }
@@ -82,22 +93,23 @@ export interface MenuItem {
 export const MENU_ITEMS: MenuItem[] = [
   {
     id: "tumpeng-nasi-kuning-klasik",
-    name: "Tumpeng Nasi Kuning Klasik",
+    name: "Tumpeng Nasi Kuning / Nasi Uduk",
     category: "Tumpeng & Tampah",
-    portionInfo: "Porsi 10-15 orang",
+    portionInfo: "Porsi mulai 10 orang",
     leadTime: "Pre-Order min. H-3",
     leadDays: 3,
     minOrder: 1,
     unitLabel: "paket",
     supportsGreetingCard: true,
     description:
-      "Nasi kuning pulen berbentuk kerucut dengan lauk lengkap: telur rebus, mie goreng, tempe orek, serundeng, tahu dan tempe bacem, urap sayur, serta ukiran buah dan sayur segar.",
+      "Pilihan tumpeng nasi kuning atau nasi uduk gurih berbentuk kerucut dengan lauk lengkap: telur rebus, mie goreng, tempe orek, serundeng, tahu dan tempe bacem, urap sayur, serta ukiran buah dan sayur segar.",
     spotlightNote:
-      "Tersedia penyesuaian porsi dan permintaan lauk tambahan untuk acara syukuran, peresmian, maupun ulang tahun.",
+      "Tersedia pilihan nasi kuning atau nasi uduk serta penyesuaian porsi dan lauk tambahan untuk acara syukuran, peresmian, maupun ulang tahun.",
     variants: [
-      { id: "porsi-10", label: "Porsi 10 orang", description: "Cocok untuk acara keluarga inti" },
-      { id: "porsi-15", label: "Porsi 15 orang", description: "Porsi standar syukuran dan kantor" },
-      { id: "porsi-20-plus", label: "Porsi 20+ orang (Custom)", description: "Detail porsi dan lauk dikonfirmasi admin" },
+      { id: "nasi-kuning-10", label: "Nasi Kuning (Porsi 10 orang)", description: "Cocok untuk acara keluarga inti" },
+      { id: "nasi-kuning-15", label: "Nasi Kuning (Porsi 15+ orang)", description: "Porsi lebih besar untuk syukuran atau kantor" },
+      { id: "nasi-uduk-10", label: "Nasi Uduk (Porsi 10 orang)", description: "Nasi uduk gurih santan lengkap dengan lauk tumpeng" },
+      { id: "nasi-uduk-15", label: "Nasi Uduk (Porsi 15+ orang)", description: "Porsi besar atau custom acara keluarga" },
     ],
     notePlaceholder: "Contoh: sambal dipisah, request lauk tambahan",
     image: "/images/real-images/tumpeng-300k.jpg",
@@ -241,9 +253,172 @@ export const MENU_ITEMS: MenuItem[] = [
     objectPosition: "50% 42%",
   },
   {
+    id: "nasi-kotak-ayam-geprek",
+    name: "Nasi Kotak Ayam Geprek",
+    category: "Nasi Kotak, Bento & Nasi Bakar",
+    portionInfo: "Minimal 20 kotak",
+    leadTime: "Pre-Order min. H-2",
+    leadDays: 2,
+    minOrder: 20,
+    unitLabel: "kotak",
+    description:
+      "Paket nasi kotak praktis berisi nasi putih bungkus rapi, ayam goreng krispi, sambal cabai merah segar, irisan timun, dan daun kemangi untuk rapat maupun syukuran.",
+    variants: [
+      { id: "paket-hemat", label: "Paket Hemat", description: "Nasi putih, ayam geprek krispi, sambal & lalap" },
+      { id: "paket-reguler", label: "Paket Reguler", description: "Nasi, ayam geprek, tahu/tempe, sambal & lalap" },
+      { id: "paket-spesial", label: "Paket Spesial / Komplit", description: "Tambahan sayur/mie, kerupuk & air mineral atau buah" },
+    ],
+    notePlaceholder: "Contoh: sambal dipisah dalam cup, level pedas sedang",
+    image: "/images/real-images/nasi-kotak-ayam-geprek.jpg",
+    width: 4000,
+    height: 2256,
+    objectPosition: "50% 50%",
+  },
+  {
+    id: "nasi-kotak-nasi-liwet",
+    name: "Nasi Kotak Nasi Liwet",
+    category: "Nasi Kotak, Bento & Nasi Bakar",
+    portionInfo: "Minimal 20 kotak",
+    leadTime: "Pre-Order min. H-2",
+    leadDays: 2,
+    minOrder: 20,
+    unitLabel: "kotak",
+    description:
+      "Nasi liwet bungkus kerucut daun pisang dalam kotak rapi bersama ayam goreng, mie goreng, tempe orek, ikan asin kering, dan sambal dalam wadah tertutup.",
+    variants: [
+      { id: "paket-hemat", label: "Paket Hemat", description: "Nasi liwet daun pisang, ayam goreng & sambal" },
+      { id: "paket-reguler", label: "Paket Reguler", description: "Nasi liwet, ayam goreng, mie goreng, orek tempe & sambal" },
+      { id: "paket-spesial", label: "Paket Spesial / Komplit", description: "Paket lengkap dengan ikan asin kering, kerupuk & buah" },
+    ],
+    notePlaceholder: "Contoh: pakai ayam bakar atau ayam goreng",
+    image: "/images/real-images/nasi-kotak-liwet.jpg",
+    width: 3000,
+    height: 4000,
+    objectPosition: "50% 50%",
+  },
+  {
+    id: "nasi-bento",
+    name: "Nasi Bento",
+    category: "Nasi Kotak, Bento & Nasi Bakar",
+    portionInfo: "Bisa pesan mulai 1 kotak",
+    leadTime: "Bisa hari H (H-1 bila stok kosong)",
+    leadDays: 0,
+    minOrder: 1,
+    unitLabel: "kotak",
+    supportsGreetingCard: true,
+    description:
+      "Kemasan bento sekat praktis dengan pilihan nasi kuning atau nasi putih, lauk ayam goreng/teriyaki, telur, serta pelengkap sayur segar. Cocok untuk ulang tahun anak maupun bekal acara.",
+    variantSummary: "Varian: Paket Anak, Standar Acara, atau Custom Lauk",
+    variants: [
+      { id: "bento-anak", label: "Bento Anak / Ulang Tahun", description: "Porsi pas untuk acara ulang tahun atau sekolah" },
+      { id: "bento-standar", label: "Bento Reguler / Dewasa", description: "Porsi lauk lengkap dalam wadah bento sekat" },
+      { id: "bento-custom", label: "Bento Custom Lauk", description: "Isian lauk dan nasi disesuaikan permintaan" },
+    ],
+    notePlaceholder: "Contoh: pakai nasi kuning, tambah stiker ucapan ultah",
+  },
+  {
+    id: "nasi-bakar",
+    name: "Nasi Bakar Aneka Isian",
+    category: "Nasi Kotak, Bento & Nasi Bakar",
+    portionInfo: "Bisa pesan mulai 1 bungkus",
+    leadTime: "Bisa hari H (H-1 bila stok kosong)",
+    leadDays: 0,
+    minOrder: 1,
+    unitLabel: "bungkus",
+    description:
+      "Nasi berbumbu rempah dibungkus daun pisang lalu dibakar harum dengan pilihan isian udang, cumi, ikan, atau ayam suwir berbumbu.",
+    variantSummary: "Isian: Udang, Cumi, Ikan, Ayam",
+    variants: [
+      { id: "udang", label: "Nasi Bakar Udang", description: "Isian udang berbumbu rempah wangi kemangi" },
+      { id: "cumi", label: "Nasi Bakar Cumi", description: "Isian cumi gurih pedas sedang atau request" },
+      { id: "ikan", label: "Nasi Bakar Ikan", description: "Isian suwiran ikan berbumbu gurih" },
+      { id: "ayam", label: "Nasi Bakar Ayam", description: "Isian ayam suwir bumbu meresap" },
+    ],
+    notePlaceholder: "Contoh: tanpa cabe / request tingkat pedas, tambah sambal",
+  },
+  {
+    id: "rice-bowl",
+    name: "Rice Bowl",
+    category: "Rice Bowl, Lauk & Menu Harian",
+    portionInfo: "Bisa pesan mulai 1 porsi",
+    leadTime: "Bisa hari H (H-1 bila stok kosong)",
+    leadDays: 0,
+    minOrder: 1,
+    unitLabel: "porsi",
+    description:
+      "Sajian nasi hangat dalam kemasan mangkuk praktis dengan tujuh pilihan topping favorit mulai dari seafood, ayam berbumbu teriyaki, hingga sapi lada hitam.",
+    variantSummary:
+      "7 pilihan: Udang, Cumi, Ayam/Ikan Suwir, Teriyaki, Lada Hitam",
+    variants: [
+      { id: "rice-udang", label: "Rice Bowl Udang", description: "Nasi hangat dengan olahan udang berbumbu" },
+      { id: "rice-cumi", label: "Rice Bowl Cumi", description: "Nasi hangat dengan tumisan cumi gurih" },
+      { id: "ayam-suwir", label: "Rice Bowl Ayam Suwir", description: "Ayam suwir berbumbu rempah rumahan" },
+      { id: "ikan-suwir", label: "Rice Bowl Ikan Suwir", description: "Suwiran ikan gurih wangi daun jeruk" },
+      { id: "ayam-popcorn-teriyaki", label: "Rice Bowl Ayam Popcorn Saos Teriyaki", description: "Ayam potong krispi disiram saus teriyaki manis gurih" },
+      { id: "ayam-lada-hitam", label: "Rice Bowl Ayam Lada Hitam", description: "Potongan ayam tumis saus lada hitam" },
+      { id: "sapi-lada-hitam", label: "Rice Bowl Sapi Lada Hitam", description: "Daging sapi empuk dengan saus lada hitam" },
+    ],
+    notePlaceholder: "Contoh: request tambah telur ceplok / saus dipisah",
+  },
+  {
+    id: "ayam-geprek-satuan",
+    name: "Ayam Geprek",
+    category: "Rice Bowl, Lauk & Menu Harian",
+    portionInfo: "Bisa pesan mulai 1 porsi",
+    leadTime: "Bisa hari H (H-1 bila stok kosong)",
+    leadDays: 0,
+    minOrder: 1,
+    unitLabel: "porsi",
+    description:
+      "Ayam goreng tepung renyah digeprek bersama sambal bawang cabai segar dan lalapan timun kemangi, tersedia porsi satuan dengan nasi atau lauk saja.",
+    variantSummary: "Pilihan: Paket + Nasi atau Lauk Saja",
+    variants: [
+      { id: "geprek-nasi", label: "Ayam Geprek + Nasi", description: "Lengkap dengan nasi putih, sambal & lalap" },
+      { id: "geprek-lauk", label: "Ayam Geprek (Lauk Saja)", description: "Tanpa nasi, cocok untuk tambahan lauk keluarga" },
+    ],
+    notePlaceholder: "Contoh: level pedas sedang / pedas, sambal dipisah",
+  },
+  {
+    id: "korean-spicy-chicken-wing",
+    name: "Korean Spicy Chicken Wing",
+    category: "Rice Bowl, Lauk & Menu Harian",
+    portionInfo: "Bisa pesan mulai 1 porsi",
+    leadTime: "Bisa hari H (H-1 bila stok kosong)",
+    leadDays: 0,
+    minOrder: 1,
+    unitLabel: "porsi",
+    description:
+      "Sayap ayam goreng renyah berbalut saus pedas manis ala Korea dengan taburan wijen, nikmat disantap sebagai camilan maupun dengan nasi hangat.",
+    variantSummary: "Pilihan: Porsi Reguler atau Paket + Nasi",
+    variants: [
+      { id: "wing-reguler", label: "Porsi Reguler (Sayap Ayam Saja)", description: "Sayap ayam saus pedas manis ala Korea" },
+      { id: "wing-nasi", label: "Paket + Nasi Putih", description: "Sayap ayam saus pedas manis lengkap dengan nasi" },
+    ],
+    notePlaceholder: "Contoh: saus tidak terlalu pedas / wijen banyak",
+  },
+  {
+    id: "mie-gacoan",
+    name: "Mie Gacoan",
+    category: "Rice Bowl, Lauk & Menu Harian",
+    portionInfo: "Bisa pesan mulai 1 porsi",
+    leadTime: "Bisa hari H (H-1 bila stok kosong)",
+    leadDays: 0,
+    minOrder: 1,
+    unitLabel: "porsi",
+    description:
+      "Mie kenyal berbumbu gurih atau manis pedas sesuai selera level pedas, lengkap dengan taburan ayam cincang dan pangsit renyah.",
+    variantSummary: "Pilihan level: Tidak Pedas, Sedang, atau Pedas",
+    variants: [
+      { id: "tidak-pedas", label: "Level Tidak Pedas / Gurih", description: "Cocok untuk anak atau yang tidak makan pedas" },
+      { id: "sedang", label: "Level Pedas Sedang", description: "Pedas manis seimbang" },
+      { id: "pedas", label: "Level Pedas", description: "Untuk penyuka sensasi pedas lebih kuat" },
+    ],
+    notePlaceholder: "Contoh: tulis level pedas atau tambah pangsit goreng",
+  },
+  {
     id: "ayam-ingkung-bakar",
     name: "Ayam Ingkung Bakar",
-    category: "Nasi Kotak & Lauk",
+    category: "Rice Bowl, Lauk & Menu Harian",
     portionInfo: "Per ekor utuh / paket acara",
     leadTime: "Pre-Order min. H-2",
     leadDays: 2,
@@ -262,48 +437,60 @@ export const MENU_ITEMS: MenuItem[] = [
     objectPosition: "50% 50%",
   },
   {
-    id: "nasi-kotak-ayam-geprek",
-    name: "Nasi Kotak Ayam Geprek",
-    category: "Nasi Kotak & Lauk",
-    portionInfo: "Minimal 20 kotak",
-    leadTime: "Pre-Order min. H-2",
-    leadDays: 2,
-    minOrder: 20,
-    unitLabel: "kotak",
+    id: "ayam-ikan-bakar",
+    name: "Ayam & Ikan Bakar",
+    category: "Rice Bowl, Lauk & Menu Harian",
+    portionInfo: "Bisa pesan mulai 1 porsi",
+    leadTime: "Bisa hari H (H-1 bila stok kosong)",
+    leadDays: 0,
+    minOrder: 1,
+    unitLabel: "porsi",
     description:
-      "Paket nasi kotak praktis berisi nasi putih bungkus rapi, ayam goreng krispi, sambal cabai merah segar, irisan timun, dan daun kemangi untuk rapat maupun syukuran.",
+      "Ayam atau ikan pilihan dioles bumbu bakar kecap rempah hingga harum matang, disajikan bersama sambal segar dan lalapan.",
+    variantSummary: "Pilihan: Ayam Bakar atau Ikan Bakar",
     variants: [
-      { id: "paket-hemat", label: "Paket Hemat", description: "Nasi putih, ayam geprek krispi, sambal & lalap" },
-      { id: "paket-reguler", label: "Paket Reguler", description: "Nasi, ayam geprek, tahu/tempe, sambal & lalap" },
-      { id: "paket-spesial", label: "Paket Spesial / Komplit", description: "Tambahan sayur/mie, kerupuk & air mineral atau buah" },
+      { id: "ayam-bakar", label: "Ayam Bakar + Sambal Lalap", description: "Potongan ayam bakar bumbu kecap rempah" },
+      { id: "ikan-bakar", label: "Ikan Bakar + Sambal Lalap", description: "Ikan bakar segar dengan sambal kecap/terasi" },
+      { id: "paket-nasi", label: "Paket Ayam/Ikan Bakar + Nasi", description: "Tuliskan pilihan ayam atau ikan di catatan" },
     ],
-    notePlaceholder: "Contoh: sambal dipisah dalam plastik/cup, level pedas sedang",
-    image: "/images/real-images/nasi-kotak-ayam-geprek.jpg",
-    width: 4000,
-    height: 2256,
-    objectPosition: "50% 50%",
+    notePlaceholder: "Contoh: ikan nila/patin atau ayam bagian paha/dada",
   },
   {
-    id: "nasi-kotak-nasi-liwet",
-    name: "Nasi Kotak Nasi Liwet",
-    category: "Nasi Kotak & Lauk",
-    portionInfo: "Minimal 20 kotak",
-    leadTime: "Pre-Order min. H-2",
-    leadDays: 2,
-    minOrder: 20,
-    unitLabel: "kotak",
+    id: "ayam-ikan-pepes",
+    name: "Ayam & Ikan Pepes",
+    category: "Rice Bowl, Lauk & Menu Harian",
+    portionInfo: "Bisa pesan mulai 1 bungkus",
+    leadTime: "Bisa hari H (H-1 bila stok kosong)",
+    leadDays: 0,
+    minOrder: 1,
+    unitLabel: "bungkus",
     description:
-      "Nasi liwet bungkus kerucut daun pisang dalam kotak rapi bersama ayam goreng, mie goreng, tempe orek, ikan asin kering, dan sambal dalam wadah tertutup.",
+      "Pepes ayam atau ikan berbumbu kuning lengkap dengan daun kemangi, serai, dan tomat yang dikukus dalam daun pisang hingga bumbu meresap.",
+    variantSummary: "Pilihan: Ayam Pepes atau Ikan Pepes",
     variants: [
-      { id: "paket-hemat", label: "Paket Hemat", description: "Nasi liwet daun pisang, ayam goreng & sambal" },
-      { id: "paket-reguler", label: "Paket Reguler", description: "Nasi liwet, ayam goreng, mie goreng, orek tempe & sambal" },
-      { id: "paket-spesial", label: "Paket Spesial / Komplit", description: "Paket lengkap dengan ikan asin kering, kerupuk & buah" },
+      { id: "ayam-pepes", label: "Ayam Pepes Bumbu Kemangi", description: "Potongan ayam empuk beraroma daun kemangi" },
+      { id: "ikan-pepes", label: "Ikan Pepes Bumbu Kuning", description: "Ikan kukus rempah kuning dalam balutan daun pisang" },
     ],
-    notePlaceholder: "Contoh: pakai ayam bakar atau ayam goreng",
-    image: "/images/real-images/nasi-kotak-liwet.jpg",
-    width: 3000,
-    height: 4000,
-    objectPosition: "50% 50%",
+    notePlaceholder: "Contoh: tanpa cabe utuh / minta dibakar sebentar setelah dikukus",
+  },
+  {
+    id: "udang-cumi-crispy",
+    name: "Udang & Cumi Crispy",
+    category: "Rice Bowl, Lauk & Menu Harian",
+    portionInfo: "Bisa pesan mulai 1 porsi",
+    leadTime: "Bisa hari H (H-1 bila stok kosong)",
+    leadDays: 0,
+    minOrder: 1,
+    unitLabel: "porsi",
+    description:
+      "Udang atau cumi segar berbalut tepung krispi gurih digoreng renyah keemasan, cocok untuk lauk makan keluarga maupun camilan.",
+    variantSummary: "Pilihan: Udang Crispy, Cumi Crispy, atau Mix",
+    variants: [
+      { id: "udang-crispy", label: "Udang Crispy", description: "Udang goreng tepung renyah" },
+      { id: "cumi-crispy", label: "Cumi Crispy", description: "Potongan cumi goreng tepung renyah tidak alot" },
+      { id: "mix-crispy", label: "Mix Udang & Cumi Crispy", description: "Kombinasi udang dan cumi dalam 1 porsi" },
+    ],
+    notePlaceholder: "Contoh: tambah saus sambal / request + nasi putih",
   },
   {
     id: "pie-buah-tart-custom",
@@ -355,7 +542,7 @@ export const MENU_ITEMS: MenuItem[] = [
   },
   {
     id: "pudding-cake-birthday",
-    name: "Pudding Cake Birthday",
+    name: "Pudding Tart & Cake Birthday",
     category: "Kue, Pudding & Snack",
     portionInfo: "Desain & ucapan custom",
     leadTime: "Pre-Order min. H-2",
@@ -364,9 +551,10 @@ export const MENU_ITEMS: MenuItem[] = [
     unitLabel: "loyang",
     supportsGreetingCard: true,
     description:
-      "Pudding ulang tahun dengan kombinasi vla dan dekorasi buah atau karakter sesuai permintaan tema acara.",
+      "Pudding tart dan pudding cake ulang tahun dengan kombinasi vla serta dekorasi buah atau karakter sesuai permintaan tema acara.",
     variants: [
-      { id: "standar", label: "Ukuran Standar", description: "Cocok untuk perayaan ulang tahun keluarga" },
+      { id: "pudding-tart", label: "Pudding Tart Standar", description: "Pudding tart bulat/kotak dengan vla dan topping buah" },
+      { id: "standar-birthday", label: "Pudding Cake Ulang Tahun", description: "Cocok untuk perayaan ulang tahun keluarga" },
       { id: "besar-tingkat", label: "Ukuran Besar / Tingkat", description: "Ukuran besar atau susun tingkat untuk pesta" },
       { id: "custom-karakter", label: "Custom Karakter / Tema", description: "Dekorasi tema anak atau dewasa sesuai request" },
     ],
@@ -425,7 +613,7 @@ export const MAPS_URL =
   "https://www.google.com/maps/search/?api=1&query=Dapoer+Bulek+Dayamurni+Tumijajar+Tulang+Bawang+Barat+Lampung";
 
 export function getWhatsAppMenuLink(menuName: string): string {
-  const text = `Halo Dapoer Bulek, saya ingin menanyakan harga, porsi, dan jadwal Pre-Order untuk ${menuName}.`;
+  const text = `Halo Dapoer Bulek, saya ingin menanyakan harga, porsi, dan jadwal pemesanan untuk ${menuName}.`;
   return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(text)}`;
 }
 
@@ -492,10 +680,10 @@ export function formatIndonesianDate(dateStr: string): string {
 export function buildPreOrderWhatsAppMessage(
   items: OrderSelectionItem[],
   form: PreOrderFormValues,
-  options?: { isUrgentInquiry?: boolean; requiredLeadDays?: number }
+  options?: { isUrgentInquiry?: boolean; requiredLeadDays?: 0 | 2 | 3 }
 ): string {
   const isUrgent = Boolean(options?.isUrgentInquiry);
-  const leadDays = options?.requiredLeadDays ?? 2;
+  const leadDays = options?.requiredLeadDays ?? 0;
 
   const resolvedItems = items
     .map((entry) => {
@@ -521,13 +709,15 @@ export function buildPreOrderWhatsAppMessage(
       } => entry !== null
     );
 
+  const hasSameDayMenu = resolvedItems.some((item) => item.menu.leadDays === 0);
+
   const lines: string[] = [
     isUrgent
       ? "Halo Dapoer Bulek, saya ingin menanyakan apakah masih memungkinkan untuk pesanan mendadak dengan detail berikut:"
-      : "Halo Dapoer Bulek, saya ingin mengajukan Pre-Order catering dengan detail berikut:",
+      : "Halo Dapoer Bulek, saya ingin mengajukan pemesanan catering dengan detail berikut:",
     "",
     `Nama Pemesan: ${form.customerName.trim() || "[Belum diisi]"}`,
-    `Tanggal Acara: ${formatIndonesianDate(form.eventDate)}`,
+    `Tanggal Acara / Ambil: ${formatIndonesianDate(form.eventDate)}`,
     `Jam Acara / Siap Saji: ${form.eventTime.trim() ? `${form.eventTime.trim()} WIB` : "[Belum diisi]"}`,
     `Metode Pengambilan: ${
       form.deliveryMethod === "pickup"
@@ -547,8 +737,10 @@ export function buildPreOrderWhatsAppMessage(
     lines.push("- [Belum ada menu yang dipilih]");
   } else {
     resolvedItems.forEach(({ menu, variant, quantity, note }, index) => {
+      const leadNote =
+        menu.leadDays === 0 ? "Hari H / cek stok" : `min. H-${menu.leadDays}`;
       lines.push(
-        `${index + 1}. ${menu.name} (${variant.label}, ${quantity} ${menu.unitLabel}, min. H-${menu.leadDays})`
+        `${index + 1}. ${menu.name} (${variant.label}, ${quantity} ${menu.unitLabel}, ${leadNote})`
       );
       if (note) {
         lines.push(`   Catatan item: ${note}`);
@@ -565,9 +757,13 @@ export function buildPreOrderWhatsAppMessage(
   }
 
   lines.push("");
-  if (isUrgent) {
+  if (isUrgent && leadDays > 0) {
     lines.push(
       `Catatan Jadwal: Tanggal acara berada di bawah ketentuan normal minimal H-${leadDays}. Mohon konfirmasi admin apakah slot dapur masih tersedia atau belum.`
+    );
+  } else if (hasSameDayMenu) {
+    lines.push(
+      "Catatan Stok: Untuk menu harian/satuan, mohon konfirmasi apakah stok tersedia untuk hari tersebut atau perlu dijadwalkan H-1."
     );
   }
   if (form.deliveryMethod === "delivery") {
@@ -611,12 +807,12 @@ export const EVENT_OPTIONS: {
   {
     id: "ulang-tahun",
     label: "Ulang Tahun",
-    description: "Pudding cake custom, tumpeng, dan suguhan keluarga",
+    description: "Pudding tart, nasi bento, atau tumpeng keluarga",
   },
   {
     id: "rapat",
     label: "Rapat / Acara Kantor",
-    description: "Praktis dengan nasi kotak dan snack box kue",
+    description: "Praktis dengan nasi kotak, nasi bakar, dan snack box",
   },
   {
     id: "pengajian",
@@ -645,11 +841,7 @@ export function buildEventRecommendation(
     if (eventType === "syukuran") {
       const tumpeng = getMenuById("tumpeng-nasi-kuning-klasik");
       const variant =
-        guests <= 12
-          ? tumpeng.variants[0]
-          : guests <= 18
-            ? tumpeng.variants[1]
-            : tumpeng.variants[2];
+        guests <= 12 ? tumpeng.variants[0] : tumpeng.variants[1];
       const qty = guests > 25 ? Math.ceil(guests / 15) : 1;
       result.push({
         menu: tumpeng,
@@ -705,22 +897,32 @@ export function buildEventRecommendation(
   }
 
   if (pref.includeNasiKotak) {
-    const kotakMenu =
-      eventType === "rapat"
-        ? getMenuById("nasi-kotak-ayam-geprek")
-        : getMenuById("nasi-kotak-nasi-liwet");
-    const qty = Math.max(kotakMenu.minOrder, guests);
-    const variant =
-      eventType === "rapat" ? kotakMenu.variants[1] : kotakMenu.variants[2];
-    result.push({
-      menu: kotakMenu,
-      variant,
-      quantity: qty,
-      reason:
-        guests < kotakMenu.minOrder
-          ? `Mengikuti ketentuan minimal order ${kotakMenu.minOrder} kotak`
-          : `1 kotak untuk masing-masing ${qty} tamu`,
-    });
+    if (eventType === "ulang-tahun" && guests < 20) {
+      const bento = getMenuById("nasi-bento");
+      result.push({
+        menu: bento,
+        variant: bento.variants[0],
+        quantity: guests,
+        reason: `Paket nasi bento praktis untuk ${guests} tamu tanpa batas min. 20 kotak`,
+      });
+    } else {
+      const kotakMenu =
+        eventType === "rapat"
+          ? getMenuById("nasi-kotak-ayam-geprek")
+          : getMenuById("nasi-kotak-nasi-liwet");
+      const qty = Math.max(kotakMenu.minOrder, guests);
+      const variant =
+        eventType === "rapat" ? kotakMenu.variants[1] : kotakMenu.variants[2];
+      result.push({
+        menu: kotakMenu,
+        variant,
+        quantity: qty,
+        reason:
+          guests < kotakMenu.minOrder
+            ? `Mengikuti ketentuan minimal order ${kotakMenu.minOrder} kotak`
+            : `1 kotak untuk masing-masing ${qty} tamu`,
+      });
+    }
   }
 
   if (pref.includeSnackBox) {
@@ -742,12 +944,12 @@ export function buildEventRecommendation(
   if (pref.includeDessert) {
     if (eventType === "ulang-tahun") {
       const bday = getMenuById("pudding-cake-birthday");
-      const variant = guests <= 20 ? bday.variants[0] : bday.variants[1];
+      const variant = guests <= 20 ? bday.variants[0] : bday.variants[2];
       result.push({
         menu: bday,
         variant,
         quantity: 1,
-        reason: "Pudding cake utama perayaan ulang tahun dengan desain custom",
+        reason: "Pudding tart atau pudding cake ulang tahun dengan desain custom",
       });
     } else if (eventType === "syukuran") {
       const tumpengPudding = getMenuById("tumpeng-pudding-cake");

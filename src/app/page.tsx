@@ -262,10 +262,10 @@ function HeroSection() {
             </h1>
 
             <p className="mt-5 max-w-xl text-base leading-relaxed text-ink-light-secondary sm:text-lg">
-              Melayani pemesanan Pre-Order Tumpeng Nasi Kuning &amp; Custom, Nasi
-              Liwet Sunda, Ayam Ingkung Bakar, Nasi Kotak, Pie Buah, Pudding
-              Cake, dan Snack Box Jajanan Pasar untuk wilayah Tumijajar dan
-              Tulang Bawang Barat.
+              Melayani Tumpeng Nasi Kuning &amp; Uduk, Nasi Liwet, Nasi Kotak,
+              Nasi Bento, Nasi Bakar, Rice Bowl, Mie Gacoan, aneka bakaran dan
+              pepes, hingga Pie Buah, Pudding Tart, dan Snack Box untuk wilayah
+              Tumijajar dan Tulang Bawang Barat.
             </p>
 
             <div className="mt-8 flex flex-wrap items-center gap-3">
@@ -290,7 +290,7 @@ function HeroSection() {
                   Sistem Pemesanan
                 </dt>
                 <dd className="mt-1 text-sm font-semibold text-cream">
-                  Pre-Order H-2 dan H-3
+                  Pre-Order H-2/H-3 &amp; Menu Harian
                 </dd>
               </div>
               <div>
@@ -352,26 +352,34 @@ function MenuSpotlightCard({
 }) {
   return (
     <article className="grid overflow-hidden rounded-xl border border-cream-border bg-white lg:grid-cols-12">
-      <button
-        type="button"
-        onClick={() => onOpenDetail(item)}
-        aria-label={`Lihat detail dan pilihan varian ${item.name}`}
-        className="block overflow-hidden border-b border-cream-border bg-cream-muted text-left lg:col-span-5 lg:border-b-0 lg:border-r"
-      >
-        <Image
-          src={item.image}
-          alt={item.name}
-          width={item.width}
-          height={item.height}
-          sizes="(max-width: 1024px) 100vw, 42vw"
-          style={
-            item.objectPosition
-              ? { objectPosition: item.objectPosition }
-              : undefined
-          }
-          className="aspect-square h-full w-full object-cover transition-transform duration-300 hover:scale-[1.02]"
-        />
-      </button>
+      {item.image && item.width && item.height ? (
+        <button
+          type="button"
+          onClick={() => onOpenDetail(item)}
+          aria-label={`Lihat detail dan pilihan varian ${item.name}`}
+          className="block overflow-hidden border-b border-cream-border bg-cream-muted text-left lg:col-span-5 lg:border-b-0 lg:border-r"
+        >
+          <Image
+            src={item.image}
+            alt={item.name}
+            width={item.width}
+            height={item.height}
+            sizes="(max-width: 1024px) 100vw, 42vw"
+            style={
+              item.objectPosition
+                ? { objectPosition: item.objectPosition }
+                : undefined
+            }
+            className="aspect-square h-full w-full object-cover transition-transform duration-300 hover:scale-[1.02]"
+          />
+        </button>
+      ) : (
+        <div className="flex items-center justify-center border-b border-cream-border bg-cream-muted p-6 text-center lg:col-span-5 lg:border-b-0 lg:border-r">
+          <p className="text-sm font-semibold text-ink-dark-muted">
+            Foto menu segera menyusul
+          </p>
+        </div>
+      )}
       <div className="flex flex-col justify-center p-6 sm:p-8 lg:col-span-7 lg:p-10">
         <p className="text-xs font-semibold text-amber-text-strong">
           Menu Utama · {item.portionInfo} · {item.leadTime} · {item.variants.length} varian
@@ -447,26 +455,35 @@ function MenuCard({
 }) {
   return (
     <article className="flex flex-col overflow-hidden rounded-lg border border-cream-border bg-white">
-      <button
-        type="button"
-        onClick={() => onOpenDetail(item)}
-        aria-label={`Lihat detail dan pilihan varian ${item.name}`}
-        className="block w-full overflow-hidden border-b border-cream-border bg-cream-muted text-left"
-      >
-        <Image
-          src={item.image}
-          alt={item.name}
-          width={item.width}
-          height={item.height}
-          sizes={sizes}
-          style={
-            item.objectPosition
-              ? { objectPosition: item.objectPosition }
-              : undefined
-          }
-          className={`${aspectClass} h-auto w-full object-cover transition-transform duration-300 hover:scale-[1.03]`}
-        />
-      </button>
+      {item.image && item.width && item.height ? (
+        <button
+          type="button"
+          onClick={() => onOpenDetail(item)}
+          aria-label={`Lihat detail dan pilihan varian ${item.name}`}
+          className="block w-full overflow-hidden border-b border-cream-border bg-cream-muted text-left"
+        >
+          <Image
+            src={item.image}
+            alt={item.name}
+            width={item.width}
+            height={item.height}
+            sizes={sizes}
+            style={
+              item.objectPosition
+                ? { objectPosition: item.objectPosition }
+                : undefined
+            }
+            className={`${aspectClass} h-auto w-full object-cover transition-transform duration-300 hover:scale-[1.03]`}
+          />
+        </button>
+      ) : (
+        <div className="flex items-center justify-between gap-2 border-b border-cream-border bg-cream-muted px-5 py-3 text-xs text-ink-dark-muted">
+          <span className="font-medium">Foto menu segera menyusul</span>
+          <span className="font-semibold text-amber-text-strong">
+            {item.leadDays === 0 ? "Bisa Hari H" : `PO H-${item.leadDays}`}
+          </span>
+        </div>
+      )}
 
       <div className="flex flex-1 flex-col p-5 sm:p-6">
         <p className="text-xs font-semibold text-amber-text-strong">
@@ -482,7 +499,8 @@ function MenuCard({
         </p>
 
         <p className="mt-3 text-xs font-medium text-ink-dark-muted">
-          {item.variants.length} pilihan varian · Harga dikonfirmasi via WA
+          {item.variantSummary ??
+            `${item.variants.length} pilihan varian · Harga dikonfirmasi via WA`}
         </p>
 
         <div className="mt-4 flex flex-col gap-2">
@@ -883,10 +901,18 @@ function PreOrderLocationSection() {
               </div>
               <div className="flex flex-col gap-1 py-4 sm:flex-row sm:items-center sm:justify-between">
                 <dt className="text-sm font-medium text-ink-dark-secondary">
-                  Pie Buah Tart, Pudding Cake &amp; Tumpeng Buah
+                  Pie Buah Tart, Pudding Tart/Cake &amp; Tumpeng Buah
                 </dt>
                 <dd className="text-sm font-semibold text-charcoal">
                   Minimal H-2
+                </dd>
+              </div>
+              <div className="flex flex-col gap-1 py-4 sm:flex-row sm:items-center sm:justify-between">
+                <dt className="text-sm font-medium text-ink-dark-secondary">
+                  Nasi Bakar, Rice Bowl, Bento, Mie Gacoan &amp; Lauk Harian
+                </dt>
+                <dd className="text-sm font-semibold text-charcoal">
+                  Bisa Hari H (H-1 bila stok kosong)
                 </dd>
               </div>
               <div className="flex flex-col gap-1 py-4 sm:flex-row sm:items-center sm:justify-between">

@@ -155,17 +155,22 @@ export function PreOrderBuilder({
       );
   }, [selectedItems]);
 
-  const requiredLeadDays: 2 | 3 = useMemo(() => {
-    return resolvedItems.some((entry) => entry.menu.leadDays === 3) ? 3 : 2;
+  const requiredLeadDays: 0 | 2 | 3 = useMemo(() => {
+    if (resolvedItems.some((entry) => entry.menu.leadDays === 3)) return 3;
+    if (resolvedItems.some((entry) => entry.menu.leadDays === 2)) return 2;
+    return 0;
   }, [resolvedItems]);
 
   const earliestValidDate = useMemo(() => {
     if (!dateBounds) return "";
-    return requiredLeadDays === 3 ? dateBounds.h3Str : dateBounds.h2Str;
+    if (requiredLeadDays === 3) return dateBounds.h3Str;
+    if (requiredLeadDays === 2) return dateBounds.h2Str;
+    return dateBounds.todayStr;
   }, [dateBounds, requiredLeadDays]);
 
   const isUrgentDate = Boolean(
-    dateBounds &&
+    requiredLeadDays > 0 &&
+      dateBounds &&
       earliestValidDate &&
       formValues.eventDate &&
       formValues.eventDate >= dateBounds.todayStr &&
@@ -360,7 +365,8 @@ export function PreOrderBuilder({
               </h3>
               <p className="mt-1 text-sm text-ink-dark-muted">
                 Tambahkan satu atau beberapa menu sekaligus. Paket nasi kotak
-                minimal 20 kotak dan snack box minimal 15 kotak.
+                minimal 20 kotak dan snack box minimal 15 kotak, sedangkan menu
+                harian seperti nasi bakar, rice bowl, dan bento mulai 1 porsi.
               </p>
 
               <div className="mt-4">
@@ -390,7 +396,11 @@ export function PreOrderBuilder({
                               {item.minOrder > 1
                                 ? `min. ${item.minOrder} ${item.unitLabel}`
                                 : `per ${item.unitLabel}`}
-                              , H-{item.leadDays})
+                              ,{" "}
+                              {item.leadDays === 0
+                                ? "Hari H / H-1"
+                                : `H-${item.leadDays}`}
+                              )
                             </option>
                           ))}
                         </optgroup>
@@ -746,10 +756,12 @@ export function PreOrderBuilder({
                       className="mt-1.5 text-xs leading-relaxed text-ink-dark-muted"
                     >
                       {!dateBounds
-                        ? "Menyiapkan kalender jadwal minimal H-2 / H-3..."
-                        : `PO normal minimal H-${requiredLeadDays} (${formatIndonesianDate(
-                            earliestValidDate
-                          )}). Jadwal mendadak dapat ditanyakan ke admin via WA.`}
+                        ? "Menyiapkan kalender jadwal pemesanan..."
+                        : requiredLeadDays === 0
+                          ? "Menu pilihan dapat dipesan untuk Hari H (terkadang perlu H-1 jika stok bahan sedang kosong)."
+                          : `PO normal minimal H-${requiredLeadDays} (${formatIndonesianDate(
+                              earliestValidDate
+                            )}). Jadwal mendadak dapat ditanyakan ke admin via WA.`}
                     </p>
                     {(submitAttempted || Boolean(formValues.eventDate)) &&
                       validation.eventDate && (
@@ -1027,7 +1039,9 @@ export function PreOrderBuilder({
                 <span className="font-semibold text-golden">
                   {isUrgentDate
                     ? "Cek slot mendadak via WA"
-                    : `Batas pesan: min. H-${requiredLeadDays}`}
+                    : requiredLeadDays === 0
+                      ? "Batas pesan: Hari H (cek stok)"
+                      : `Batas pesan: min. H-${requiredLeadDays}`}
                 </span>
               </div>
             </div>

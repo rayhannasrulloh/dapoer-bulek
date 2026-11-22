@@ -126,21 +126,36 @@ function MenuDetailModalContent({
 
         <div className="overflow-y-auto p-5 sm:p-6">
           <div className="grid gap-5 sm:grid-cols-12">
-            <div className="overflow-hidden rounded-lg border border-cream-border bg-cream-muted sm:col-span-5">
-              <Image
-                src={item.image}
-                alt={item.name}
-                width={item.width}
-                height={item.height}
-                sizes="(max-width: 640px) 100vw, 260px"
-                style={
-                  item.objectPosition
-                    ? { objectPosition: item.objectPosition }
-                    : undefined
-                }
-                className="aspect-square h-auto w-full object-cover"
-              />
-            </div>
+            {item.image && item.width && item.height ? (
+              <div className="overflow-hidden rounded-lg border border-cream-border bg-cream-muted sm:col-span-5">
+                <Image
+                  src={item.image}
+                  alt={item.name}
+                  width={item.width}
+                  height={item.height}
+                  sizes="(max-width: 640px) 100vw, 260px"
+                  style={
+                    item.objectPosition
+                      ? { objectPosition: item.objectPosition }
+                      : undefined
+                  }
+                  className="aspect-square h-auto w-full object-cover"
+                />
+              </div>
+            ) : (
+              <div className="flex flex-col justify-between rounded-lg border border-dashed border-[#78716C] bg-cream-muted p-4 sm:col-span-5">
+                <span className="text-xs font-semibold text-amber-text-strong">
+                  {item.category}
+                </span>
+                <p className="mt-4 text-sm font-semibold text-charcoal">
+                  Foto menu segera menyusul
+                </p>
+                <p className="mt-1 text-xs leading-relaxed text-ink-dark-muted">
+                  Tanyakan ketersediaan stok dan rincian lauk langsung melalui
+                  WhatsApp.
+                </p>
+              </div>
+            )}
 
             <div className="sm:col-span-7">
               <h3
