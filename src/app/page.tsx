@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import Image from "next/image";
 import { Check, Menu, MessageCircle, MapPin, Phone, Plus, X } from "lucide-react";
 import {
@@ -13,8 +13,12 @@ import {
   MenuItem,
   OrderSelectionItem,
   getWhatsAppGeneralLink,
+  makeOrderItemKey,
 } from "@/data/menu";
 import { PreOrderBuilder } from "@/components/PreOrderBuilder";
+import { MenuDetailModal } from "@/components/MenuDetailModal";
+import { EventPackagePlanner } from "@/components/EventPackagePlanner";
+import { FloatingOrderBar } from "@/components/FloatingOrderBar";
 
 function InstagramIcon({ className }: { className?: string }) {
   return (
@@ -38,6 +42,7 @@ function InstagramIcon({ className }: { className?: string }) {
 
 const NAV_LINKS = [
   { label: "Menu", href: "#menu" },
+  { label: "Paket Acara", href: "#paket-acara" },
   { label: "Buat Pesanan", href: "#pesan" },
   { label: "Tentang Dapur", href: "#about" },
   { label: "Galeri", href: "#galeri" },
@@ -159,12 +164,12 @@ function Navbar() {
             </span>
           </a>
 
-          <nav aria-label="Navigasi utama" className="hidden items-center gap-1 lg:flex">
+          <nav aria-label="Navigasi utama" className="hidden items-center gap-0.5 lg:flex">
             {NAV_LINKS.map((link) => (
               <a
                 key={link.href}
                 href={link.href}
-                className="inline-flex min-h-[44px] items-center rounded-md px-3.5 text-sm font-medium text-ink-light-secondary transition-colors hover:text-golden"
+                className="inline-flex min-h-[44px] items-center rounded-md px-2.5 text-sm font-medium text-ink-light-secondary transition-colors hover:text-golden xl:px-3.5"
               >
                 {link.label}
               </a>
@@ -173,7 +178,7 @@ function Navbar() {
               href={getWhatsAppGeneralLink()}
               target="_blank"
               rel="noopener noreferrer"
-              className="ml-3 inline-flex min-h-[44px] items-center gap-2 rounded-full bg-golden px-5 py-2.5 text-sm font-semibold text-charcoal transition-colors hover:bg-golden-dark active:bg-golden-dark"
+              className="ml-2 inline-flex min-h-[44px] items-center gap-2 rounded-full bg-golden px-4 py-2.5 text-sm font-semibold text-charcoal transition-colors hover:bg-golden-dark active:bg-golden-dark xl:ml-3 xl:px-5"
             >
               <Phone className="h-4 w-4" aria-hidden="true" />
               Pesan WhatsApp
@@ -338,14 +343,21 @@ function MenuSpotlightCard({
   item,
   selectedQty,
   onAddItem,
+  onOpenDetail,
 }: {
   item: MenuItem;
   selectedQty: number;
   onAddItem: (menuId: string) => void;
+  onOpenDetail: (item: MenuItem) => void;
 }) {
   return (
     <article className="grid overflow-hidden rounded-xl border border-cream-border bg-white lg:grid-cols-12">
-      <div className="overflow-hidden border-b border-cream-border bg-cream-muted lg:col-span-5 lg:border-b-0 lg:border-r">
+      <button
+        type="button"
+        onClick={() => onOpenDetail(item)}
+        aria-label={`Lihat detail dan pilihan varian ${item.name}`}
+        className="block overflow-hidden border-b border-cream-border bg-cream-muted text-left lg:col-span-5 lg:border-b-0 lg:border-r"
+      >
         <Image
           src={item.image}
           alt={item.name}
@@ -359,10 +371,10 @@ function MenuSpotlightCard({
           }
           className="aspect-square h-full w-full object-cover transition-transform duration-300 hover:scale-[1.02]"
         />
-      </div>
+      </button>
       <div className="flex flex-col justify-center p-6 sm:p-8 lg:col-span-7 lg:p-10">
         <p className="text-xs font-semibold text-amber-text-strong">
-          Menu Utama · {item.portionInfo} · {item.leadTime}
+          Menu Utama · {item.portionInfo} · {item.leadTime} · {item.variants.length} varian
         </p>
         <h4 className="mt-2 font-serif text-2xl font-bold text-charcoal sm:text-3xl">
           {item.name}
@@ -378,6 +390,14 @@ function MenuSpotlightCard({
         <div className="mt-7 flex flex-wrap items-center gap-3">
           <button
             type="button"
+            onClick={() => onOpenDetail(item)}
+            className="inline-flex min-h-[48px] items-center justify-center rounded-md border border-[#78716C] bg-white px-5 py-3 text-sm font-semibold text-charcoal transition-colors hover:border-charcoal hover:bg-cream-muted sm:text-base"
+          >
+            Detail &amp; Pilih Varian
+          </button>
+
+          <button
+            type="button"
             onClick={() => onAddItem(item.id)}
             className="inline-flex min-h-[48px] items-center justify-center gap-2 rounded-full bg-golden px-7 py-3 text-sm font-semibold text-charcoal transition-colors hover:bg-golden-dark active:bg-golden-dark sm:text-base"
           >
@@ -391,7 +411,7 @@ function MenuSpotlightCard({
             ) : (
               <>
                 <Plus className="h-4 w-4" aria-hidden="true" />
-                <span>Tambah {item.name} ke Pesanan</span>
+                <span>Tambah ke Format Pesanan</span>
               </>
             )}
           </button>
@@ -416,16 +436,23 @@ function MenuCard({
   sizes,
   selectedQty,
   onAddItem,
+  onOpenDetail,
 }: {
   item: MenuItem;
   aspectClass: string;
   sizes: string;
   selectedQty: number;
   onAddItem: (menuId: string) => void;
+  onOpenDetail: (item: MenuItem) => void;
 }) {
   return (
     <article className="flex flex-col overflow-hidden rounded-lg border border-cream-border bg-white">
-      <div className="overflow-hidden border-b border-cream-border bg-cream-muted">
+      <button
+        type="button"
+        onClick={() => onOpenDetail(item)}
+        aria-label={`Lihat detail dan pilihan varian ${item.name}`}
+        className="block w-full overflow-hidden border-b border-cream-border bg-cream-muted text-left"
+      >
         <Image
           src={item.image}
           alt={item.name}
@@ -439,7 +466,7 @@ function MenuCard({
           }
           className={`${aspectClass} h-auto w-full object-cover transition-transform duration-300 hover:scale-[1.03]`}
         />
-      </div>
+      </button>
 
       <div className="flex flex-1 flex-col p-5 sm:p-6">
         <p className="text-xs font-semibold text-amber-text-strong">
@@ -454,7 +481,19 @@ function MenuCard({
           {item.description}
         </p>
 
-        <div className="mt-5 flex flex-col gap-2">
+        <p className="mt-3 text-xs font-medium text-ink-dark-muted">
+          {item.variants.length} pilihan varian · Harga dikonfirmasi via WA
+        </p>
+
+        <div className="mt-4 flex flex-col gap-2">
+          <button
+            type="button"
+            onClick={() => onOpenDetail(item)}
+            className="inline-flex min-h-[44px] w-full items-center justify-center rounded-md border border-[#78716C] bg-white px-4 py-2 text-sm font-semibold text-charcoal transition-colors hover:border-charcoal hover:bg-cream-muted"
+          >
+            Detail &amp; Pilih Varian
+          </button>
+
           <button
             type="button"
             onClick={() => onAddItem(item.id)}
@@ -492,15 +531,27 @@ function MenuCard({
 function MenuCatalogSection({
   selectedItems,
   onAddItem,
+  onOpenDetail,
+  onApplyPackage,
 }: {
   selectedItems: OrderSelectionItem[];
   onAddItem: (menuId: string) => void;
+  onOpenDetail: (item: MenuItem) => void;
+  onApplyPackage: (
+    entries: {
+      menuId: string;
+      variantId: string;
+      quantity: number;
+      note?: string;
+    }[]
+  ) => void;
 }) {
   const [activeCategory, setActiveCategory] = useState<Category>("Semua");
 
   const getQtyForMenu = (menuId: string): number => {
-    const found = selectedItems.find((entry) => entry.menuId === menuId);
-    return found ? found.quantity : 0;
+    return selectedItems
+      .filter((entry) => entry.menuId === menuId)
+      .reduce((total, entry) => total + entry.quantity, 0);
   };
 
   const visibleGroups =
@@ -628,6 +679,7 @@ function MenuCatalogSection({
                       item={spotlightItem}
                       selectedQty={getQtyForMenu(spotlightItem.id)}
                       onAddItem={onAddItem}
+                      onOpenDetail={onOpenDetail}
                     />
                   )}
 
@@ -641,6 +693,7 @@ function MenuCatalogSection({
                           sizes={cardSizes}
                           selectedQty={getQtyForMenu(item.id)}
                           onAddItem={onAddItem}
+                          onOpenDetail={onOpenDetail}
                         />
                       ))}
                     </div>
@@ -650,6 +703,8 @@ function MenuCatalogSection({
             })}
           </div>
         )}
+
+        <EventPackagePlanner onApplyPackage={onApplyPackage} />
       </div>
     </section>
   );
@@ -812,7 +867,7 @@ function PreOrderLocationSection() {
             <dl className="mt-7 divide-y divide-cream-border rounded-lg border border-cream-border bg-white px-5">
               <div className="flex flex-col gap-1 py-4 sm:flex-row sm:items-center sm:justify-between">
                 <dt className="text-sm font-medium text-ink-dark-secondary">
-                  Tumpeng Klasik, Custom &amp; Tumpeng Buah
+                  Tumpeng Nasi Kuning, Liwet Custom &amp; Tumpeng Sate
                 </dt>
                 <dd className="text-sm font-semibold text-charcoal">
                   Minimal H-3
@@ -828,13 +883,25 @@ function PreOrderLocationSection() {
               </div>
               <div className="flex flex-col gap-1 py-4 sm:flex-row sm:items-center sm:justify-between">
                 <dt className="text-sm font-medium text-ink-dark-secondary">
-                  Pie Buah Tart &amp; Pudding Cake
+                  Pie Buah Tart, Pudding Cake &amp; Tumpeng Buah
                 </dt>
                 <dd className="text-sm font-semibold text-charcoal">
                   Minimal H-2
                 </dd>
               </div>
+              <div className="flex flex-col gap-1 py-4 sm:flex-row sm:items-center sm:justify-between">
+                <dt className="text-sm font-medium text-ink-dark-secondary">
+                  Pengambilan &amp; Pengantaran
+                </dt>
+                <dd className="text-sm font-semibold text-charcoal">
+                  Ambil atau antar (+ ongkir sesuai jarak &amp; kondisi)
+                </dd>
+              </div>
             </dl>
+            <p className="mt-3 text-xs leading-relaxed text-ink-dark-muted">
+              Pesanan mendadak di bawah H-2 atau H-3 tetap bisa ditanyakan ke
+              WhatsApp, namun ketersediaan slot menunggu konfirmasi dapur.
+            </p>
 
             <div
               id="location"
@@ -892,7 +959,7 @@ function FooterSection() {
       id="contact"
       className="border-t border-charcoal-border bg-charcoal text-cream"
     >
-      <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
+      <div className="mx-auto max-w-7xl px-4 pb-24 pt-16 sm:px-6 sm:pb-24 sm:pt-20 lg:px-8">
         <div className="flex flex-col justify-between gap-8 border-b border-charcoal-border pb-12 lg:flex-row lg:items-center">
           <div className="max-w-xl">
             <p className="text-sm font-semibold text-golden">
@@ -969,40 +1036,219 @@ function FooterSection() {
   );
 }
 
+const ORDER_STORAGE_KEY = "dapoer-bulek-order-v1";
+const ORDER_CHANGE_EVENT = "dapoer-bulek-order-change";
+const EMPTY_ORDER: OrderSelectionItem[] = [];
+
+let cachedOrderRaw: string | null = null;
+let cachedOrderItems: OrderSelectionItem[] = EMPTY_ORDER;
+let orderStorageUnavailable = false;
+
+function readOrderStorage(): OrderSelectionItem[] {
+  if (typeof window === "undefined") return EMPTY_ORDER;
+  if (orderStorageUnavailable) return cachedOrderItems;
+  try {
+    const raw = window.localStorage.getItem(ORDER_STORAGE_KEY);
+    if (raw === cachedOrderRaw) return cachedOrderItems;
+    cachedOrderRaw = raw;
+    if (!raw) {
+      cachedOrderItems = EMPTY_ORDER;
+      return cachedOrderItems;
+    }
+    const parsed = JSON.parse(raw);
+    cachedOrderItems = Array.isArray(parsed)
+      ? (parsed as OrderSelectionItem[])
+      : EMPTY_ORDER;
+    return cachedOrderItems;
+  } catch {
+    orderStorageUnavailable = true;
+    return cachedOrderItems;
+  }
+}
+
+function writeOrderStorage(next: OrderSelectionItem[]) {
+  const raw = JSON.stringify(next);
+  cachedOrderRaw = raw;
+  cachedOrderItems = next;
+  if (typeof window === "undefined") return;
+  if (!orderStorageUnavailable) {
+    try {
+      window.localStorage.setItem(ORDER_STORAGE_KEY, raw);
+    } catch {
+      orderStorageUnavailable = true;
+    }
+  }
+  window.dispatchEvent(new Event(ORDER_CHANGE_EVENT));
+}
+
+function subscribeOrderStorage(callback: () => void) {
+  if (typeof window === "undefined") return () => {};
+  const onLocal = () => callback();
+  const onStorage = (event: StorageEvent) => {
+    if (event.key === null || event.key === ORDER_STORAGE_KEY) {
+      callback();
+    }
+  };
+  window.addEventListener(ORDER_CHANGE_EVENT, onLocal);
+  window.addEventListener("storage", onStorage);
+  return () => {
+    window.removeEventListener(ORDER_CHANGE_EVENT, onLocal);
+    window.removeEventListener("storage", onStorage);
+  };
+}
+
+function getServerOrderSnapshot(): OrderSelectionItem[] {
+  return EMPTY_ORDER;
+}
+
+function upsertOrderEntries(
+  current: OrderSelectionItem[],
+  entries: {
+    menuId: string;
+    variantId?: string;
+    quantity?: number;
+    note?: string;
+  }[]
+): OrderSelectionItem[] {
+  const next = [...current];
+
+  for (const entry of entries) {
+    const menu = MENU_ITEMS.find((item) => item.id === entry.menuId);
+    if (!menu) continue;
+
+    const variantId = entry.variantId || menu.variants[0]?.id || "default";
+    const key = makeOrderItemKey(menu.id, variantId);
+    const addQty = entry.quantity ?? menu.minOrder;
+    const trimmedNote = entry.note?.trim() ?? "";
+
+    const existingIdx = next.findIndex((item) => item.key === key);
+    if (existingIdx !== -1) {
+      const existing = next[existingIdx];
+      const increment = entry.quantity ?? 1;
+      const mergedNote =
+        trimmedNote && trimmedNote !== existing.note
+          ? existing.note
+            ? `${existing.note}; ${trimmedNote}`
+            : trimmedNote
+          : existing.note;
+
+      next[existingIdx] = {
+        ...existing,
+        quantity: existing.quantity + increment,
+        note: mergedNote,
+      };
+    } else {
+      next.push({
+        key,
+        menuId: menu.id,
+        variantId,
+        quantity: Math.max(menu.minOrder, addQty),
+        note: trimmedNote || undefined,
+      });
+    }
+  }
+
+  return next;
+}
+
 export default function Home() {
-  const [selectedItems, setSelectedItems] = useState<OrderSelectionItem[]>([]);
+  const selectedItems = useSyncExternalStore(
+    subscribeOrderStorage,
+    readOrderStorage,
+    getServerOrderSnapshot
+  );
+  const [detailItem, setDetailItem] = useState<MenuItem | null>(null);
 
   const handleAddItem = (menuId: string) => {
-    const menu = MENU_ITEMS.find((item) => item.id === menuId);
-    if (!menu) return;
-
-    setSelectedItems((prev) => {
-      const existing = prev.find((entry) => entry.menuId === menuId);
-      if (existing) {
-        return prev.map((entry) =>
-          entry.menuId === menuId
-            ? { ...entry, quantity: entry.quantity + 1 }
-            : entry
-        );
-      }
-      return [...prev, { menuId, quantity: menu.minOrder }];
-    });
+    writeOrderStorage(upsertOrderEntries(readOrderStorage(), [{ menuId }]));
   };
 
-  const handleUpdateQuantity = (menuId: string, quantity: number) => {
-    setSelectedItems((prev) =>
-      prev.map((entry) =>
-        entry.menuId === menuId ? { ...entry, quantity } : entry
+  const handleAddDetailedItem = (payload: {
+    menuId: string;
+    variantId: string;
+    quantity: number;
+    note: string;
+    scrollToForm?: boolean;
+  }) => {
+    writeOrderStorage(upsertOrderEntries(readOrderStorage(), [payload]));
+    if (payload.scrollToForm) {
+      document.getElementById("pesan")?.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
+  const handleApplyPackage = (
+    entries: {
+      menuId: string;
+      variantId: string;
+      quantity: number;
+      note?: string;
+    }[]
+  ) => {
+    writeOrderStorage(upsertOrderEntries(readOrderStorage(), entries));
+  };
+
+  const handleUpdateQuantity = (itemKey: string, quantity: number) => {
+    writeOrderStorage(
+      readOrderStorage().map((entry) =>
+        entry.key === itemKey ? { ...entry, quantity } : entry
       )
     );
   };
 
-  const handleRemoveItem = (menuId: string) => {
-    setSelectedItems((prev) => prev.filter((entry) => entry.menuId !== menuId));
+  const handleUpdateVariant = (itemKey: string, nextVariantId: string) => {
+    const current = readOrderStorage();
+    const target = current.find((entry) => entry.key === itemKey);
+    if (!target || target.variantId === nextVariantId) return;
+
+    const nextKey = makeOrderItemKey(target.menuId, nextVariantId);
+    const duplicateIdx = current.findIndex((entry) => entry.key === nextKey);
+
+    if (duplicateIdx !== -1) {
+      const merged = current
+        .filter((entry) => entry.key !== itemKey)
+        .map((entry) =>
+          entry.key === nextKey
+            ? {
+                ...entry,
+                quantity: entry.quantity + target.quantity,
+                note:
+                  target.note && target.note !== entry.note
+                    ? entry.note
+                      ? `${entry.note}; ${target.note}`
+                      : target.note
+                    : entry.note,
+              }
+            : entry
+        );
+      writeOrderStorage(merged);
+      return;
+    }
+
+    writeOrderStorage(
+      current.map((entry) =>
+        entry.key === itemKey
+          ? { ...entry, key: nextKey, variantId: nextVariantId }
+          : entry
+      )
+    );
+  };
+
+  const handleUpdateNote = (itemKey: string, note: string) => {
+    writeOrderStorage(
+      readOrderStorage().map((entry) =>
+        entry.key === itemKey ? { ...entry, note } : entry
+      )
+    );
+  };
+
+  const handleRemoveItem = (itemKey: string) => {
+    writeOrderStorage(
+      readOrderStorage().filter((entry) => entry.key !== itemKey)
+    );
   };
 
   const handleClearItems = () => {
-    setSelectedItems([]);
+    writeOrderStorage(EMPTY_ORDER);
   };
 
   return (
@@ -1019,11 +1265,15 @@ export default function Home() {
         <MenuCatalogSection
           selectedItems={selectedItems}
           onAddItem={handleAddItem}
+          onOpenDetail={setDetailItem}
+          onApplyPackage={handleApplyPackage}
         />
         <PreOrderBuilder
           selectedItems={selectedItems}
           onAddItem={handleAddItem}
           onUpdateQuantity={handleUpdateQuantity}
+          onUpdateVariant={handleUpdateVariant}
+          onUpdateNote={handleUpdateNote}
           onRemoveItem={handleRemoveItem}
           onClearItems={handleClearItems}
         />
@@ -1032,6 +1282,15 @@ export default function Home() {
         <PreOrderLocationSection />
       </main>
       <FooterSection />
+      <MenuDetailModal
+        item={detailItem}
+        onClose={() => setDetailItem(null)}
+        onAddToOrder={handleAddDetailedItem}
+      />
+      <FloatingOrderBar
+        selectedCount={selectedItems.length}
+        hidden={Boolean(detailItem)}
+      />
     </>
   );
 }

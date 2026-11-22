@@ -9,6 +9,7 @@ import {
 } from "react";
 import {
   AlertCircle,
+  AlertTriangle,
   Check,
   Copy,
   MessageCircle,
@@ -19,6 +20,7 @@ import {
 import {
   MENU_GROUPS,
   MENU_ITEMS,
+  MenuVariant,
   OrderSelectionItem,
   PreOrderFormValues,
   buildPreOrderWhatsAppMessage,
@@ -29,8 +31,10 @@ import {
 interface PreOrderBuilderProps {
   selectedItems: OrderSelectionItem[];
   onAddItem: (menuId: string) => void;
-  onUpdateQuantity: (menuId: string, quantity: number) => void;
-  onRemoveItem: (menuId: string) => void;
+  onUpdateQuantity: (itemKey: string, quantity: number) => void;
+  onUpdateVariant: (itemKey: string, variantId: string) => void;
+  onUpdateNote: (itemKey: string, note: string) => void;
+  onRemoveItem: (itemKey: string) => void;
   onClearItems: () => void;
 }
 
@@ -51,7 +55,11 @@ function toLocalDateInputValue(date: Date): string {
 }
 
 function addDaysToLocalDate(base: Date, days: number): string {
-  const copy = new Date(base.getFullYear(), base.getMonth(), base.getDate() + days);
+  const copy = new Date(
+    base.getFullYear(),
+    base.getMonth(),
+    base.getDate() + days
+  );
   return toLocalDateInputValue(copy);
 }
 
@@ -79,15 +87,22 @@ export function PreOrderBuilder({
   selectedItems,
   onAddItem,
   onUpdateQuantity,
+  onUpdateVariant,
+  onUpdateNote,
   onRemoveItem,
   onClearItems,
 }: PreOrderBuilderProps) {
   const isClient = useIsClient();
   const [pickerMenuId, setPickerMenuId] = useState<string>(MENU_ITEMS[0].id);
-  const [formValues, setFormValues] = useState<PreOrderFormValues>(INITIAL_FORM_VALUES);
+  const [formValues, setFormValues] =
+    useState<PreOrderFormValues>(INITIAL_FORM_VALUES);
   const [submitAttempted, setSubmitAttempted] = useState(false);
-  const [copyStatus, setCopyStatus] = useState<"idle" | "copied" | "error">("idle");
-  const [submittedWhatsAppUrl, setSubmittedWhatsAppUrl] = useState<string | null>(null);
+  const [copyStatus, setCopyStatus] = useState<"idle" | "copied" | "error">(
+    "idle"
+  );
+  const [submittedWhatsAppUrl, setSubmittedWhatsAppUrl] = useState<
+    string | null
+  >(null);
 
   const pickerSelectRef = useRef<HTMLSelectElement>(null);
   const customerNameRef = useRef<HTMLInputElement>(null);
@@ -116,13 +131,27 @@ export function PreOrderBuilder({
       .map((entry) => {
         const menu = MENU_ITEMS.find((m) => m.id === entry.menuId);
         if (!menu) return null;
-        return { menu, quantity: entry.quantity };
+        const variant =
+          menu.variants.find((v) => v.id === entry.variantId) ??
+          menu.variants[0];
+        return {
+          key: entry.key,
+          menu,
+          variant,
+          quantity: entry.quantity,
+          note: entry.note ?? "",
+        };
       })
       .filter(
         (
           entry
-        ): entry is { menu: (typeof MENU_ITEMS)[number]; quantity: number } =>
-          entry !== null
+        ): entry is {
+          key: string;
+          menu: (typeof MENU_ITEMS)[number];
+          variant: MenuVariant;
+          quantity: number;
+          note: string;
+        } => entry !== null
       );
   }, [selectedItems]);
 
@@ -135,15 +164,23 @@ export function PreOrderBuilder({
     return requiredLeadDays === 3 ? dateBounds.h3Str : dateBounds.h2Str;
   }, [dateBounds, requiredLeadDays]);
 
+  const isUrgentDate = Boolean(
+    dateBounds &&
+      earliestValidDate &&
+      formValues.eventDate &&
+      formValues.eventDate >= dateBounds.todayStr &&
+      formValues.eventDate < earliestValidDate
+  );
+
   const hasGreetingEligibleItem = useMemo(() => {
     return resolvedItems.some((entry) => entry.menu.supportsGreetingCard);
   }, [resolvedItems]);
 
   const validation = useMemo<ValidationErrors>(() => {
     const itemQuantities: Record<string, string> = {};
-    for (const { menu, quantity } of resolvedItems) {
+    for (const { key, menu, quantity } of resolvedItems) {
       if (!Number.isFinite(quantity) || quantity < menu.minOrder) {
-        itemQuantities[menu.id] = `Minimal pemesanan ${menu.name} adalah ${menu.minOrder} ${menu.unitLabel}.`;
+        itemQuantities[key] = `Minimal pemesanan ${menu.name} adalah ${menu.minOrder} ${menu.unitLabel}.`;
       }
     }
 
@@ -162,10 +199,6 @@ export function PreOrderBuilder({
       eventDateError = "Pilih tanggal acara Anda.";
     } else if (dateBounds && formValues.eventDate < dateBounds.todayStr) {
       eventDateError = "Tanggal acara tidak boleh di masa lalu.";
-    } else if (earliestValidDate && formValues.eventDate < earliestValidDate) {
-      eventDateError = `Menu pilihan Anda membutuhkan pemesanan minimal H-${requiredLeadDays} (paling cepat ${formatIndonesianDate(
-        earliestValidDate
-      )}).`;
     }
 
     let eventTimeError: string | undefined;
@@ -190,13 +223,7 @@ export function PreOrderBuilder({
       eventTime: eventTimeError,
       deliveryAddress: deliveryAddressError,
     };
-  }, [
-    resolvedItems,
-    formValues,
-    dateBounds,
-    earliestValidDate,
-    requiredLeadDays,
-  ]);
+  }, [resolvedItems, formValues, dateBounds]);
 
   const hasAnyError =
     Boolean(validation.items) ||
@@ -207,8 +234,12 @@ export function PreOrderBuilder({
     Boolean(validation.deliveryAddress);
 
   const previewMessage = useMemo(
-    () => buildPreOrderWhatsAppMessage(selectedItems, formValues),
-    [selectedItems, formValues]
+    () =>
+      buildPreOrderWhatsAppMessage(selectedItems, formValues, {
+        isUrgentInquiry: isUrgentDate,
+        requiredLeadDays,
+      }),
+    [selectedItems, formValues, isUrgentDate, requiredLeadDays]
   );
 
   const handleAddFromPicker = () => {
@@ -233,8 +264,8 @@ export function PreOrderBuilder({
       if (validation.items) {
         pickerSelectRef.current?.focus();
       } else if (Object.keys(validation.itemQuantities).length > 0) {
-        const firstInvalidId = Object.keys(validation.itemQuantities)[0];
-        document.getElementById(`qty-${firstInvalidId}`)?.focus();
+        const firstInvalidKey = Object.keys(validation.itemQuantities)[0];
+        document.getElementById(`qty-${firstInvalidKey}`)?.focus();
       } else if (validation.customerName) {
         customerNameRef.current?.focus();
       } else if (validation.eventDate) {
@@ -311,9 +342,9 @@ export function PreOrderBuilder({
             Susun Format Pesanan ke WhatsApp
           </h2>
           <p className="mt-3 text-base leading-relaxed text-ink-dark-secondary">
-            Pilih menu dan jumlah porsi, tentukan tanggal acara sesuai batas H-2
-            atau H-3, lalu kirim format pesanan yang sudah tersusun rapi ke
-            WhatsApp Dapoer Bulek untuk konfirmasi harga dan jadwal.
+            Pilih menu, varian ukuran, dan jumlah porsi, lalu kirim format
+            pesanan yang sudah tersusun rapi ke WhatsApp Dapoer Bulek untuk
+            konfirmasi harga, ongkir, dan jadwal.
           </p>
         </div>
 
@@ -322,12 +353,10 @@ export function PreOrderBuilder({
           noValidate
           className="mt-10 grid items-start gap-8 lg:grid-cols-12 lg:gap-10"
         >
-          {/* Left 7 columns: Order Worksheet */}
           <div className="space-y-8 rounded-xl border border-cream-border bg-white p-5 sm:p-8 lg:col-span-7">
-            {/* Step 1: Menu Selection */}
             <div>
               <h3 className="font-serif text-xl font-bold text-charcoal">
-                1. Daftar Menu &amp; Porsi
+                1. Daftar Menu, Varian &amp; Porsi
               </h3>
               <p className="mt-1 text-sm text-ink-dark-muted">
                 Tambahkan satu atau beberapa menu sekaligus. Paket nasi kotak
@@ -380,7 +409,6 @@ export function PreOrderBuilder({
                 </div>
               </div>
 
-              {/* Selected Items List or Empty State */}
               <div className="mt-5">
                 {resolvedItems.length === 0 ? (
                   <div
@@ -394,9 +422,8 @@ export function PreOrderBuilder({
                       Belum ada menu yang dipilih.
                     </p>
                     <p className="mt-1 text-sm leading-relaxed text-ink-dark-secondary">
-                      Pilih menu dari dropdown di atas lalu tekan Tambah Menu,
-                      atau klik tombol Tambah ke Format Pesanan pada kartu di
-                      bagian katalog.
+                      Pilih menu dari dropdown di atas, klik Detail &amp; Varian
+                      pada kartu menu di atas, atau gunakan susunan Paket Acara.
                     </p>
                     {submitAttempted && validation.items && (
                       <p
@@ -416,7 +443,7 @@ export function PreOrderBuilder({
                   <div>
                     <div className="flex flex-wrap items-center justify-between gap-2 pb-2">
                       <p className="text-sm font-semibold text-charcoal">
-                        Menu Dipilih ({resolvedItems.length} jenis)
+                        Menu Dipilih ({resolvedItems.length} item)
                       </p>
                       <button
                         type="button"
@@ -431,13 +458,14 @@ export function PreOrderBuilder({
                     </div>
 
                     <ul className="divide-y divide-cream-border rounded-lg border border-cream-border bg-cream">
-                      {resolvedItems.map(({ menu, quantity }) => {
-                        const qtyError = validation.itemQuantities[menu.id];
+                      {resolvedItems.map(({ key, menu, variant, quantity, note }) => {
+                        const qtyError = validation.itemQuantities[key];
                         const showQtyError =
-                          Boolean(qtyError) && (submitAttempted || quantity < menu.minOrder);
+                          Boolean(qtyError) &&
+                          (submitAttempted || quantity < menu.minOrder);
 
                         return (
-                          <li key={menu.id} className="p-4">
+                          <li key={key} className="space-y-3 p-4">
                             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                               <div className="min-w-0">
                                 <p className="font-serif text-base font-bold text-charcoal">
@@ -455,7 +483,7 @@ export function PreOrderBuilder({
                                     disabled={quantity <= menu.minOrder}
                                     onClick={() => {
                                       onUpdateQuantity(
-                                        menu.id,
+                                        key,
                                         Math.max(menu.minOrder, quantity - 1)
                                       );
                                       setSubmittedWhatsAppUrl(null);
@@ -463,17 +491,20 @@ export function PreOrderBuilder({
                                     aria-label={`Kurangi jumlah ${menu.name}`}
                                     className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-md border border-[#78716C] bg-white text-charcoal transition-colors hover:bg-cream-muted active:bg-cream-muted disabled:border-cream-border disabled:bg-cream-muted disabled:text-ink-dark-muted"
                                   >
-                                    <Minus className="h-4 w-4" aria-hidden="true" />
+                                    <Minus
+                                      className="h-4 w-4"
+                                      aria-hidden="true"
+                                    />
                                   </button>
 
                                   <label
-                                    htmlFor={`qty-${menu.id}`}
+                                    htmlFor={`qty-${key}`}
                                     className="sr-only"
                                   >
                                     {`Jumlah ${menu.name} dalam ${menu.unitLabel}`}
                                   </label>
                                   <input
-                                    id={`qty-${menu.id}`}
+                                    id={`qty-${key}`}
                                     type="number"
                                     inputMode="numeric"
                                     min={menu.minOrder}
@@ -481,7 +512,7 @@ export function PreOrderBuilder({
                                     aria-invalid={showQtyError}
                                     aria-describedby={
                                       showQtyError
-                                        ? `qty-error-${menu.id}`
+                                        ? `qty-error-${key}`
                                         : undefined
                                     }
                                     onChange={(event) => {
@@ -490,8 +521,10 @@ export function PreOrderBuilder({
                                         10
                                       );
                                       onUpdateQuantity(
-                                        menu.id,
-                                        Number.isNaN(parsed) ? 0 : Math.max(0, parsed)
+                                        key,
+                                        Number.isNaN(parsed)
+                                          ? 0
+                                          : Math.max(0, parsed)
                                       );
                                       setSubmittedWhatsAppUrl(null);
                                     }}
@@ -506,7 +539,7 @@ export function PreOrderBuilder({
                                     type="button"
                                     onClick={() => {
                                       onUpdateQuantity(
-                                        menu.id,
+                                        key,
                                         Math.max(menu.minOrder, quantity + 1)
                                       );
                                       setSubmittedWhatsAppUrl(null);
@@ -514,7 +547,10 @@ export function PreOrderBuilder({
                                     aria-label={`Tambah jumlah ${menu.name}`}
                                     className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-md border border-[#78716C] bg-white text-charcoal transition-colors hover:bg-cream-muted active:bg-cream-muted"
                                   >
-                                    <Plus className="h-4 w-4" aria-hidden="true" />
+                                    <Plus
+                                      className="h-4 w-4"
+                                      aria-hidden="true"
+                                    />
                                   </button>
                                 </div>
 
@@ -525,23 +561,75 @@ export function PreOrderBuilder({
                                 <button
                                   type="button"
                                   onClick={() => {
-                                    onRemoveItem(menu.id);
+                                    onRemoveItem(key);
                                     setSubmittedWhatsAppUrl(null);
                                   }}
-                                  aria-label={`Hapus ${menu.name}`}
+                                  aria-label={`Hapus ${menu.name} (${variant.label})`}
                                   className="inline-flex min-h-[44px] items-center justify-center gap-1.5 rounded-md border border-[#78716C] bg-white px-3 text-xs font-semibold text-[#B91C1C] transition-colors hover:border-[#B91C1C] hover:bg-[#FEF2F2] active:bg-[#FEF2F2]"
                                 >
-                                  <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
+                                  <Trash2
+                                    className="h-3.5 w-3.5"
+                                    aria-hidden="true"
+                                  />
                                   <span>Hapus</span>
                                 </button>
                               </div>
                             </div>
 
+                            <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+                              <div>
+                                <label
+                                  htmlFor={`variant-${key}`}
+                                  className="block text-xs font-semibold text-ink-dark-secondary"
+                                >
+                                  Varian Ukuran / Paket
+                                </label>
+                                <select
+                                  id={`variant-${key}`}
+                                  value={variant.id}
+                                  onChange={(event) => {
+                                    onUpdateVariant(key, event.target.value);
+                                    setSubmittedWhatsAppUrl(null);
+                                  }}
+                                  className="mt-1 min-h-[44px] w-full rounded-md border border-[#78716C] bg-white px-3 py-2 text-xs font-medium text-charcoal"
+                                >
+                                  {menu.variants.map((opt) => (
+                                    <option key={opt.id} value={opt.id}>
+                                      {opt.label}
+                                    </option>
+                                  ))}
+                                </select>
+                              </div>
+
+                              <div>
+                                <label
+                                  htmlFor={`note-${key}`}
+                                  className="block text-xs font-semibold text-ink-dark-secondary"
+                                >
+                                  Catatan Menu (opsional)
+                                </label>
+                                <input
+                                  id={`note-${key}`}
+                                  type="text"
+                                  value={note}
+                                  onChange={(event) => {
+                                    onUpdateNote(key, event.target.value);
+                                    setSubmittedWhatsAppUrl(null);
+                                  }}
+                                  placeholder={
+                                    menu.notePlaceholder ??
+                                    "Request lauk, pedas, atau catatan"
+                                  }
+                                  className="mt-1 min-h-[44px] w-full rounded-md border border-[#78716C] bg-white px-3 py-2 text-xs text-charcoal placeholder:text-ink-dark-muted"
+                                />
+                              </div>
+                            </div>
+
                             {showQtyError && (
                               <p
-                                id={`qty-error-${menu.id}`}
+                                id={`qty-error-${key}`}
                                 role="alert"
-                                className="mt-2.5 flex items-start gap-2 text-xs font-semibold text-[#B91C1C]"
+                                className="flex items-start gap-2 text-xs font-semibold text-[#B91C1C]"
                               >
                                 <AlertCircle
                                   className="mt-0.5 h-4 w-4 shrink-0"
@@ -559,7 +647,6 @@ export function PreOrderBuilder({
               </div>
             </div>
 
-            {/* Step 2: Schedule & Delivery Details */}
             <div className="border-t border-cream-border pt-7">
               <h3 className="font-serif text-xl font-bold text-charcoal">
                 2. Data Pemesan &amp; Jadwal Acara
@@ -570,7 +657,6 @@ export function PreOrderBuilder({
               </p>
 
               <div className="mt-5 space-y-5">
-                {/* Customer Name */}
                 <div>
                   <label
                     htmlFor="po-customer-name"
@@ -621,7 +707,6 @@ export function PreOrderBuilder({
                   )}
                 </div>
 
-                {/* Date and Time */}
                 <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
                   <div>
                     <label
@@ -638,7 +723,7 @@ export function PreOrderBuilder({
                       id="po-event-date"
                       type="date"
                       required
-                      min={earliestValidDate || undefined}
+                      min={dateBounds?.todayStr || undefined}
                       value={formValues.eventDate}
                       aria-invalid={
                         (submitAttempted && Boolean(validation.eventDate)) ||
@@ -662,9 +747,9 @@ export function PreOrderBuilder({
                     >
                       {!dateBounds
                         ? "Menyiapkan kalender jadwal minimal H-2 / H-3..."
-                        : `Minimal H-${requiredLeadDays} dari hari ini (paling cepat ${formatIndonesianDate(
+                        : `PO normal minimal H-${requiredLeadDays} (${formatIndonesianDate(
                             earliestValidDate
-                          )}).`}
+                          )}). Jadwal mendadak dapat ditanyakan ke admin via WA.`}
                     </p>
                     {(submitAttempted || Boolean(formValues.eventDate)) &&
                       validation.eventDate && (
@@ -733,7 +818,30 @@ export function PreOrderBuilder({
                   </div>
                 </div>
 
-                {/* Delivery Method */}
+                {isUrgentDate && (
+                  <div
+                    role="status"
+                    className="flex items-start gap-2.5 rounded-lg border border-[#B45309] bg-[#FFFBEB] p-3.5 text-xs leading-relaxed text-[#92400E]"
+                  >
+                    <AlertTriangle
+                      className="mt-0.5 h-4 w-4 shrink-0"
+                      aria-hidden="true"
+                    />
+                    <div>
+                      <p className="font-semibold">
+                        Jadwal Mendadak (di bawah minimal normal H-{requiredLeadDays})
+                      </p>
+                      <p className="mt-1">
+                        Pemesanan normal untuk menu pilihan Anda paling cepat{" "}
+                        {formatIndonesianDate(earliestValidDate)}. Anda tetap
+                        dapat mengirim pertanyaan ke WhatsApp admin untuk cek
+                        slot, namun belum menentukan bisa atau tidaknya sebelum
+                        dikonfirmasi.
+                      </p>
+                    </div>
+                  </div>
+                )}
+
                 <fieldset>
                   <legend className="text-sm font-semibold text-charcoal">
                     Metode Pengambilan / Pengantaran
@@ -761,7 +869,7 @@ export function PreOrderBuilder({
                           Ambil di Dapur
                         </span>
                         <span className="mt-0.5 block text-xs text-ink-dark-muted">
-                          Dayamurni, Kec. Tumijajar
+                          Dayamurni, Kec. Tumijajar (tanpa ongkir)
                         </span>
                       </span>
                     </label>
@@ -788,16 +896,15 @@ export function PreOrderBuilder({
                           Antar ke Alamat
                         </span>
                         <span className="mt-0.5 block text-xs text-ink-dark-muted">
-                          Area Tumijajar &amp; Tulang Bawang Barat
+                          Ada ongkos kirim sesuai jarak &amp; kondisi
                         </span>
                       </span>
                     </label>
                   </div>
                 </fieldset>
 
-                {/* Conditional Delivery Address */}
                 {formValues.deliveryMethod === "delivery" && (
-                  <div>
+                  <div className="space-y-2">
                     <label
                       htmlFor="po-delivery-address"
                       className="block text-sm font-semibold text-charcoal"
@@ -817,25 +924,29 @@ export function PreOrderBuilder({
                       aria-invalid={
                         submitAttempted && Boolean(validation.deliveryAddress)
                       }
-                      aria-describedby={
-                        submitAttempted && validation.deliveryAddress
-                          ? "po-delivery-address-error"
-                          : undefined
-                      }
+                      aria-describedby="po-shipping-note po-delivery-address-error"
                       onChange={(event) =>
                         handleFieldChange("deliveryAddress", event.target.value)
                       }
-                      className={`mt-2 w-full rounded-md border bg-white px-3.5 py-2.5 text-sm text-charcoal placeholder:text-ink-dark-muted ${
+                      className={`mt-1 w-full rounded-md border bg-white px-3.5 py-2.5 text-sm text-charcoal placeholder:text-ink-dark-muted ${
                         submitAttempted && validation.deliveryAddress
                           ? "border-[#B91C1C]"
                           : "border-[#78716C]"
                       }`}
                     />
+                    <p
+                      id="po-shipping-note"
+                      className="rounded-md border border-cream-border bg-cream px-3 py-2 text-xs leading-relaxed text-ink-dark-secondary"
+                    >
+                      Pengantaran dikenakan ongkos kirim sesuai jarak lokasi dan
+                      tingkat kesulitan membawa pesanan. Nominal ongkir akan
+                      dikonfirmasi oleh admin melalui WhatsApp.
+                    </p>
                     {submitAttempted && validation.deliveryAddress && (
                       <p
                         id="po-delivery-address-error"
                         role="alert"
-                        className="mt-2 flex items-start gap-2 text-xs font-semibold text-[#B91C1C]"
+                        className="flex items-start gap-2 text-xs font-semibold text-[#B91C1C]"
                       >
                         <AlertCircle
                           className="mt-0.5 h-4 w-4 shrink-0"
@@ -847,7 +958,6 @@ export function PreOrderBuilder({
                   </div>
                 )}
 
-                {/* Greeting Card / Topper */}
                 <div>
                   <label
                     htmlFor="po-greeting"
@@ -873,7 +983,6 @@ export function PreOrderBuilder({
                   )}
                 </div>
 
-                {/* Extra Notes */}
                 <div>
                   <label
                     htmlFor="po-notes"
@@ -896,7 +1005,6 @@ export function PreOrderBuilder({
             </div>
           </div>
 
-          {/* Right 5 columns: Live WhatsApp Preview & Actions */}
           <div className="rounded-xl border border-charcoal-border bg-charcoal p-5 text-cream sm:p-7 lg:sticky lg:top-24 lg:col-span-5">
             <p className="text-xs font-semibold text-golden">
               Pratinjau Pesan WhatsApp
@@ -905,32 +1013,31 @@ export function PreOrderBuilder({
               Ringkasan Format Pesanan
             </h3>
             <p className="mt-2 text-sm leading-relaxed text-ink-light-secondary">
-              Periksa kembali daftar menu dan jadwal acara sebelum mengirim ke
-              WhatsApp Dapoer Bulek (+62 821-9356-2480).
+              Periksa kembali daftar menu, varian, dan jadwal acara sebelum
+              mengirim ke WhatsApp Dapoer Bulek (+62 821-9356-2480).
             </p>
 
-            {/* Lead Time & Status Summary */}
             <div className="mt-5 rounded-lg border border-charcoal-border bg-charcoal-surface px-4 py-3 text-xs leading-relaxed text-ink-light-secondary">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <span className="font-semibold text-cream">
                   {resolvedItems.length > 0
-                    ? `${resolvedItems.length} jenis menu dipilih`
+                    ? `${resolvedItems.length} item menu dipilih`
                     : "Belum ada menu dipilih"}
                 </span>
                 <span className="font-semibold text-golden">
-                  Batas pesan: min. H-{requiredLeadDays}
+                  {isUrgentDate
+                    ? "Cek slot mendadak via WA"
+                    : `Batas pesan: min. H-${requiredLeadDays}`}
                 </span>
               </div>
             </div>
 
-            {/* Message Preview */}
             <div className="mt-4 rounded-lg border border-charcoal-border bg-charcoal-surface p-4">
               <pre className="whitespace-pre-wrap break-words font-sans text-sm leading-relaxed text-cream">
                 {previewMessage}
               </pre>
             </div>
 
-            {/* Validation Summary Error */}
             {submitAttempted && hasAnyError && (
               <div
                 role="alert"
@@ -947,7 +1054,6 @@ export function PreOrderBuilder({
               </div>
             )}
 
-            {/* Submit Confirmation State */}
             {submittedWhatsAppUrl && (
               <div
                 role="status"
@@ -958,9 +1064,7 @@ export function PreOrderBuilder({
                     className="mt-0.5 h-4 w-4 shrink-0"
                     aria-hidden="true"
                   />
-                  <span>
-                    Format pesanan siap dikirim di tab WhatsApp Anda.
-                  </span>
+                  <span>Format pesanan siap dikirim di tab WhatsApp Anda.</span>
                 </p>
                 <p className="mt-1 text-xs leading-relaxed">
                   Jika jendela WhatsApp tidak terbuka otomatis oleh browser,
@@ -977,14 +1081,15 @@ export function PreOrderBuilder({
               </div>
             )}
 
-            {/* Action Buttons */}
             <div className="mt-5 space-y-3">
               <button
                 type="submit"
                 className="inline-flex min-h-[48px] w-full items-center justify-center gap-2 rounded-full bg-golden px-6 py-3 text-base font-semibold text-charcoal transition-colors hover:bg-golden-dark active:bg-golden-dark"
               >
                 <MessageCircle className="h-5 w-5" aria-hidden="true" />
-                Kirim Format ke WhatsApp
+                {isUrgentDate
+                  ? "Tanya Slot Mendadak via WhatsApp"
+                  : "Kirim Format ke WhatsApp"}
               </button>
 
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -995,7 +1100,10 @@ export function PreOrderBuilder({
                 >
                   {copyStatus === "copied" ? (
                     <>
-                      <Check className="h-4 w-4 text-[#86EFAC]" aria-hidden="true" />
+                      <Check
+                        className="h-4 w-4 text-[#86EFAC]"
+                        aria-hidden="true"
+                      />
                       <span>Format Tersalin</span>
                     </>
                   ) : (
