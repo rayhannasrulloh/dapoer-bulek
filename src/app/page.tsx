@@ -19,26 +19,17 @@ import { PreOrderBuilder } from "@/components/PreOrderBuilder";
 import { MenuDetailModal } from "@/components/MenuDetailModal";
 import { EventPackagePlanner } from "@/components/EventPackagePlanner";
 import { FloatingOrderBar } from "@/components/FloatingOrderBar";
+import { InstagramIcon } from "@/components/InstagramIcon";
+import { TumpengGallerySection } from "@/components/TumpengGallerySection";
+import { trackEvent } from "@/lib/analytics";
 
-function InstagramIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-      className={className}
-    >
-      <rect width="20" height="20" x="2" y="2" rx="5" ry="5" />
-      <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
-      <line x1="17.5" x2="17.51" y1="6.5" y2="6.5" />
-    </svg>
-  );
-}
+type MenuDetailSource =
+  | "spotlight_image"
+  | "spotlight_button"
+  | "card_image"
+  | "card_button";
+
+type AddToOrderSource = "spotlight" | "card" | "builder_picker";
 
 const NAV_LINKS = [
   { label: "Menu", href: "#menu" },
@@ -74,42 +65,6 @@ const KITCHEN_STANDARDS = [
     title: "Jadwal Ambil atau Antar Jelas",
     detail:
       "Jam pengambilan di Dayamurni maupun pengantaran area Tumijajar disepakati langsung saat konfirmasi WhatsApp.",
-  },
-];
-
-interface GalleryHighlight {
-  src: string;
-  width: number;
-  height: number;
-  objectPosition?: string;
-  alt: string;
-  caption: string;
-}
-
-const GALLERY_HIGHLIGHTS: GalleryHighlight[] = [
-  {
-    src: "/images/real-images/nasi-kotak-liwet2.jpg",
-    width: 3000,
-    height: 4000,
-    objectPosition: "50% 50%",
-    alt: "Susunan kotak Nasi Liwet dengan nasi bungkus daun pisang, ayam goreng, mie goreng, orek tempe, dan sambal",
-    caption: "Pesanan Nasi Kotak Liwet siap dikemas rapi",
-  },
-  {
-    src: "/images/real-images/tumpeng-sate-lontong.jpg",
-    width: 4000,
-    height: 2256,
-    objectPosition: "49% 50%",
-    alt: "Tumpeng Sate dan Lontong Dapoer Bulek dengan kartu ucapan ulang tahun keluarga",
-    caption: "Tumpeng Sate & Lontong untuk kejutan keluarga",
-  },
-  {
-    src: "/images/real-images/nasi-liwet.jpg",
-    width: 1536,
-    height: 1920,
-    objectPosition: "50% 42%",
-    alt: "Sajian Nasi Liwet Tampah beralas daun pisang dengan lauk ayam bakar, tahu, tempe, ikan asin, dan kemangi",
-    caption: "Tampah Nasi Liwet Sunda beralas daun pisang",
   },
 ];
 
@@ -178,6 +133,9 @@ function Navbar() {
               href={getWhatsAppGeneralLink()}
               target="_blank"
               rel="noopener noreferrer"
+              onClick={() =>
+                trackEvent("click_whatsapp", { location: "header_desktop" })
+              }
               className="ml-2 inline-flex min-h-[44px] items-center gap-2 rounded-full bg-golden px-4 py-2.5 text-sm font-semibold text-charcoal transition-colors hover:bg-golden-dark active:bg-golden-dark xl:ml-3 xl:px-5"
             >
               <Phone className="h-4 w-4" aria-hidden="true" />
@@ -231,7 +189,10 @@ function Navbar() {
             href={getWhatsAppGeneralLink()}
             target="_blank"
             rel="noopener noreferrer"
-            onClick={() => setMobileOpen(false)}
+            onClick={() => {
+              trackEvent("click_whatsapp", { location: "header_mobile" });
+              setMobileOpen(false);
+            }}
             className="mt-4 flex min-h-[48px] w-full items-center justify-center gap-2 rounded-full bg-golden px-5 py-3 text-base font-semibold text-charcoal transition-colors hover:bg-golden-dark"
           >
             <Phone className="h-4 w-4" aria-hidden="true" />
@@ -310,6 +271,9 @@ function HeroSection() {
                     href={INSTAGRAM_URL}
                     target="_blank"
                     rel="noopener noreferrer"
+                    onClick={() =>
+                      trackEvent("click_instagram", { location: "hero_summary" })
+                    }
                     className="-my-2 inline-flex min-h-[44px] items-center text-golden underline-offset-4 hover:underline"
                   >
                     @dapoerbule_354
@@ -347,15 +311,15 @@ function MenuSpotlightCard({
 }: {
   item: MenuItem;
   selectedQty: number;
-  onAddItem: (menuId: string) => void;
-  onOpenDetail: (item: MenuItem) => void;
+  onAddItem: (menuId: string, source?: AddToOrderSource) => void;
+  onOpenDetail: (item: MenuItem, source?: MenuDetailSource) => void;
 }) {
   return (
     <article className="grid overflow-hidden rounded-xl border border-cream-border bg-white lg:grid-cols-12">
       {item.image && item.width && item.height ? (
         <button
           type="button"
-          onClick={() => onOpenDetail(item)}
+          onClick={() => onOpenDetail(item, "spotlight_image")}
           aria-label={`Lihat detail dan pilihan varian ${item.name}`}
           className="block overflow-hidden border-b border-cream-border bg-cream-muted text-left lg:col-span-5 lg:border-b-0 lg:border-r"
         >
@@ -398,7 +362,7 @@ function MenuSpotlightCard({
         <div className="mt-7 flex flex-wrap items-center gap-3">
           <button
             type="button"
-            onClick={() => onOpenDetail(item)}
+            onClick={() => onOpenDetail(item, "spotlight_button")}
             className="inline-flex min-h-[48px] items-center justify-center rounded-md border border-[#78716C] bg-white px-5 py-3 text-sm font-semibold text-charcoal transition-colors hover:border-charcoal hover:bg-cream-muted sm:text-base"
           >
             Detail &amp; Pilih Varian
@@ -406,7 +370,7 @@ function MenuSpotlightCard({
 
           <button
             type="button"
-            onClick={() => onAddItem(item.id)}
+            onClick={() => onAddItem(item.id, "spotlight")}
             className="inline-flex min-h-[48px] items-center justify-center gap-2 rounded-full bg-golden px-7 py-3 text-sm font-semibold text-charcoal transition-colors hover:bg-golden-dark active:bg-golden-dark sm:text-base"
           >
             {selectedQty > 0 ? (
@@ -450,15 +414,15 @@ function MenuCard({
   aspectClass: string;
   sizes: string;
   selectedQty: number;
-  onAddItem: (menuId: string) => void;
-  onOpenDetail: (item: MenuItem) => void;
+  onAddItem: (menuId: string, source?: AddToOrderSource) => void;
+  onOpenDetail: (item: MenuItem, source?: MenuDetailSource) => void;
 }) {
   return (
     <article className="flex flex-col overflow-hidden rounded-lg border border-cream-border bg-white">
       {item.image && item.width && item.height ? (
         <button
           type="button"
-          onClick={() => onOpenDetail(item)}
+          onClick={() => onOpenDetail(item, "card_image")}
           aria-label={`Lihat detail dan pilihan varian ${item.name}`}
           className="block w-full overflow-hidden border-b border-cream-border bg-cream-muted text-left"
         >
@@ -506,7 +470,7 @@ function MenuCard({
         <div className="mt-4 flex flex-col gap-2">
           <button
             type="button"
-            onClick={() => onOpenDetail(item)}
+            onClick={() => onOpenDetail(item, "card_button")}
             className="inline-flex min-h-[44px] w-full items-center justify-center rounded-md border border-[#78716C] bg-white px-4 py-2 text-sm font-semibold text-charcoal transition-colors hover:border-charcoal hover:bg-cream-muted"
           >
             Detail &amp; Pilih Varian
@@ -514,7 +478,7 @@ function MenuCard({
 
           <button
             type="button"
-            onClick={() => onAddItem(item.id)}
+            onClick={() => onAddItem(item.id, "card")}
             className="inline-flex min-h-[44px] w-full items-center justify-center gap-2 rounded-md bg-golden px-4 py-2.5 text-sm font-semibold text-charcoal transition-colors hover:bg-golden-dark active:bg-golden-dark"
           >
             {selectedQty > 0 ? (
@@ -553,8 +517,8 @@ function MenuCatalogSection({
   onApplyPackage,
 }: {
   selectedItems: OrderSelectionItem[];
-  onAddItem: (menuId: string) => void;
-  onOpenDetail: (item: MenuItem) => void;
+  onAddItem: (menuId: string, source?: AddToOrderSource) => void;
+  onOpenDetail: (item: MenuItem, source?: MenuDetailSource) => void;
   onApplyPackage: (
     entries: {
       menuId: string;
@@ -615,7 +579,10 @@ function MenuCatalogSection({
                   type="button"
                   role="tab"
                   aria-selected={isSelected}
-                  onClick={() => setActiveCategory(category)}
+                  onClick={() => {
+                    setActiveCategory(category);
+                    trackEvent("select_menu_category", { category });
+                  }}
                   className={`min-h-[44px] rounded-md border px-4 py-2 text-sm font-semibold transition-colors ${
                     isSelected
                       ? "border-charcoal bg-charcoal text-cream"
@@ -786,82 +753,6 @@ function AboutKitchenSection() {
   );
 }
 
-function InstagramGallerySection() {
-  return (
-    <section
-      id="galeri"
-      className="border-t border-cream-border bg-cream py-16 text-charcoal sm:py-24"
-    >
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="grid items-center gap-10 lg:grid-cols-12 lg:gap-12">
-          <div className="lg:col-span-5">
-            <p className="text-sm font-semibold text-amber-text-strong">
-              Dokumentasi Pesanan Nyata
-            </p>
-            <h2 className="mt-2 font-serif text-[clamp(1.75rem,3.4vw,2.625rem)] font-bold leading-tight text-charcoal">
-              Lihat Hasil Pesanan dan Sorotan Pelanggan di Instagram
-            </h2>
-            <p className="mt-4 text-base leading-relaxed text-ink-dark-secondary">
-              Dokumentasi pengiriman harian, variasi tumpeng custom, hingga
-              tanggapan langsung dari pelanggan kami bagikan di akun resmi{" "}
-              <span className="font-semibold text-charcoal">
-                @dapoerbule_354
-              </span>
-              .
-            </p>
-
-            <div className="mt-7 flex flex-wrap gap-3">
-              <a
-                href={INSTAGRAM_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex min-h-[48px] items-center justify-center gap-2 rounded-full bg-charcoal px-6 py-3 text-sm font-semibold text-cream transition-colors hover:bg-charcoal-surface sm:text-base"
-              >
-                <InstagramIcon className="h-4 w-4" />
-                Buka @dapoerbule_354
-              </a>
-              <a
-                href={getWhatsAppGeneralLink()}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex min-h-[48px] items-center justify-center rounded-full border border-[#78716C] bg-white px-6 py-3 text-sm font-semibold text-charcoal transition-colors hover:border-charcoal sm:text-base"
-              >
-                Cek Ketersediaan Tanggal
-              </a>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 lg:col-span-7">
-            {GALLERY_HIGHLIGHTS.map((photo) => (
-              <figure
-                key={photo.src}
-                className="overflow-hidden rounded-lg border border-cream-border bg-white"
-              >
-                <Image
-                  src={photo.src}
-                  alt={photo.alt}
-                  width={photo.width}
-                  height={photo.height}
-                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 33vw, 20vw"
-                  style={
-                    photo.objectPosition
-                      ? { objectPosition: photo.objectPosition }
-                      : undefined
-                  }
-                  className="aspect-square h-auto w-full object-cover"
-                />
-                <figcaption className="px-3.5 py-3 text-xs font-medium leading-snug text-ink-dark-secondary">
-                  {photo.caption}
-                </figcaption>
-              </figure>
-            ))}
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
 function PreOrderLocationSection() {
   return (
     <section
@@ -949,6 +840,9 @@ function PreOrderLocationSection() {
                     href={MAPS_URL}
                     target="_blank"
                     rel="noopener noreferrer"
+                    onClick={() =>
+                      trackEvent("click_maps", { location: "location_section" })
+                    }
                     className="mt-3 inline-flex min-h-[44px] items-center text-sm font-semibold text-amber-text-strong underline underline-offset-4 hover:text-charcoal"
                   >
                     Buka Rute di Google Maps
@@ -1005,6 +899,9 @@ function FooterSection() {
               href={getWhatsAppGeneralLink()}
               target="_blank"
               rel="noopener noreferrer"
+              onClick={() =>
+                trackEvent("click_whatsapp", { location: "footer_cta" })
+              }
               className="inline-flex min-h-[48px] items-center justify-center gap-2 rounded-full bg-golden px-7 py-3 text-base font-semibold text-charcoal transition-colors hover:bg-golden-dark active:bg-golden-dark"
             >
               <MessageCircle className="h-5 w-5" aria-hidden="true" />
@@ -1046,6 +943,9 @@ function FooterSection() {
               href={INSTAGRAM_URL}
               target="_blank"
               rel="noopener noreferrer"
+              onClick={() =>
+                trackEvent("click_instagram", { location: "footer" })
+              }
               className="inline-flex min-h-[44px] items-center gap-1.5 px-2 text-sm text-ink-light-secondary transition-colors hover:text-golden"
             >
               <InstagramIcon className="h-4 w-4" />
@@ -1184,9 +1084,36 @@ export default function Home() {
     getServerOrderSnapshot
   );
   const [detailItem, setDetailItem] = useState<MenuItem | null>(null);
+  const [galleryLightboxOpen, setGalleryLightboxOpen] = useState(false);
 
-  const handleAddItem = (menuId: string) => {
+  const handleOpenDetail = (
+    item: MenuItem,
+    source: MenuDetailSource = "card_button"
+  ) => {
+    setDetailItem(item);
+    trackEvent("view_menu_detail", {
+      menu_id: item.id,
+      menu_name: item.name,
+      category: item.category,
+      source,
+    });
+  };
+
+  const handleAddItem = (
+    menuId: string,
+    source: AddToOrderSource = "card"
+  ) => {
+    const menu = MENU_ITEMS.find((entry) => entry.id === menuId);
     writeOrderStorage(upsertOrderEntries(readOrderStorage(), [{ menuId }]));
+    if (menu) {
+      trackEvent("add_to_order", {
+        menu_id: menu.id,
+        menu_name: menu.name,
+        variant_id: menu.variants[0]?.id ?? "default",
+        quantity: menu.minOrder,
+        source,
+      });
+    }
   };
 
   const handleAddDetailedItem = (payload: {
@@ -1196,7 +1123,15 @@ export default function Home() {
     note: string;
     scrollToForm?: boolean;
   }) => {
+    const menu = MENU_ITEMS.find((entry) => entry.id === payload.menuId);
     writeOrderStorage(upsertOrderEntries(readOrderStorage(), [payload]));
+    trackEvent("add_to_order", {
+      menu_id: payload.menuId,
+      menu_name: menu?.name ?? payload.menuId,
+      variant_id: payload.variantId,
+      quantity: payload.quantity,
+      source: payload.scrollToForm ? "modal_and_scroll" : "modal",
+    });
     if (payload.scrollToForm) {
       document.getElementById("pesan")?.scrollIntoView({ behavior: "smooth" });
     }
@@ -1291,7 +1226,7 @@ export default function Home() {
         <MenuCatalogSection
           selectedItems={selectedItems}
           onAddItem={handleAddItem}
-          onOpenDetail={setDetailItem}
+          onOpenDetail={handleOpenDetail}
           onApplyPackage={handleApplyPackage}
         />
         <PreOrderBuilder
@@ -1304,7 +1239,9 @@ export default function Home() {
           onClearItems={handleClearItems}
         />
         <AboutKitchenSection />
-        <InstagramGallerySection />
+        <TumpengGallerySection
+          onLightboxOpenChange={setGalleryLightboxOpen}
+        />
         <PreOrderLocationSection />
       </main>
       <FooterSection />
@@ -1315,7 +1252,7 @@ export default function Home() {
       />
       <FloatingOrderBar
         selectedCount={selectedItems.length}
-        hidden={Boolean(detailItem)}
+        hidden={Boolean(detailItem) || galleryLightboxOpen}
       />
     </>
   );

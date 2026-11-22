@@ -27,10 +27,14 @@ import {
   formatIndonesianDate,
   getWhatsAppTextLink,
 } from "@/data/menu";
+import { trackEvent } from "@/lib/analytics";
 
 interface PreOrderBuilderProps {
   selectedItems: OrderSelectionItem[];
-  onAddItem: (menuId: string) => void;
+  onAddItem: (
+    menuId: string,
+    source?: "card" | "spotlight" | "builder_picker"
+  ) => void;
   onUpdateQuantity: (itemKey: string, quantity: number) => void;
   onUpdateVariant: (itemKey: string, variantId: string) => void;
   onUpdateNote: (itemKey: string, note: string) => void;
@@ -248,7 +252,7 @@ export function PreOrderBuilder({
   );
 
   const handleAddFromPicker = () => {
-    onAddItem(pickerMenuId);
+    onAddItem(pickerMenuId, "builder_picker");
     setSubmittedWhatsAppUrl(null);
   };
 
@@ -285,14 +289,32 @@ export function PreOrderBuilder({
 
     const whatsappUrl = getWhatsAppTextLink(previewMessage);
     setSubmittedWhatsAppUrl(whatsappUrl);
+    const totalPortions = resolvedItems.reduce(
+      (sum, entry) => sum + entry.quantity,
+      0
+    );
+    trackEvent("submit_whatsapp_order", {
+      mode: isUrgentDate ? "urgent" : "scheduled",
+      items_count: resolvedItems.length,
+      total_portions: totalPortions,
+      delivery_method: formValues.deliveryMethod,
+    });
     window.open(whatsappUrl, "_blank", "noopener,noreferrer");
   };
 
   const handleCopyMessage = async () => {
+    const trackCopySuccess = () => {
+      trackEvent("copy_whatsapp_format", {
+        mode: isUrgentDate ? "urgent" : "scheduled",
+        items_count: resolvedItems.length,
+      });
+    };
+
     try {
       if (navigator.clipboard && navigator.clipboard.writeText) {
         await navigator.clipboard.writeText(previewMessage);
         setCopyStatus("copied");
+        trackCopySuccess();
         return;
       }
 
@@ -308,6 +330,7 @@ export function PreOrderBuilder({
 
       if (copied) {
         setCopyStatus("copied");
+        trackCopySuccess();
       } else {
         setCopyStatus("error");
       }
@@ -1088,6 +1111,11 @@ export function PreOrderBuilder({
                   href={submittedWhatsAppUrl}
                   target="_blank"
                   rel="noopener noreferrer"
+                  onClick={() =>
+                    trackEvent("click_whatsapp", {
+                      location: "builder_resend_link",
+                    })
+                  }
                   className="mt-2 inline-flex min-h-[44px] items-center font-semibold text-[#166534] underline underline-offset-4 hover:text-charcoal"
                 >
                   Buka Ulang Halaman WhatsApp

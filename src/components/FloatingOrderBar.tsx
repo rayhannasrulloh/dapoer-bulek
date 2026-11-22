@@ -2,6 +2,7 @@
 
 import { MessageCircle, ShoppingBag } from "lucide-react";
 import { getWhatsAppGeneralLink } from "@/data/menu";
+import { trackEvent } from "@/lib/analytics";
 
 interface FloatingOrderBarProps {
   selectedCount: number;
@@ -22,6 +23,9 @@ export function FloatingOrderBar({
             href={getWhatsAppGeneralLink()}
             target="_blank"
             rel="noopener noreferrer"
+            onClick={() =>
+              trackEvent("click_whatsapp", { location: "floating_bar_icon" })
+            }
             aria-label="Chat WhatsApp Dapoer Bulek"
             className="inline-flex min-h-[48px] min-w-[48px] items-center justify-center rounded-full border border-charcoal-border bg-charcoal text-cream transition-colors hover:border-golden hover:text-golden"
           >
@@ -40,6 +44,9 @@ export function FloatingOrderBar({
           href={getWhatsAppGeneralLink()}
           target="_blank"
           rel="noopener noreferrer"
+          onClick={() =>
+            trackEvent("click_whatsapp", { location: "floating_bar_cta" })
+          }
           className="inline-flex min-h-[48px] items-center gap-2 rounded-full border border-charcoal bg-golden px-5 py-2.5 text-sm font-semibold text-charcoal transition-colors hover:bg-golden-dark active:bg-golden-dark"
         >
           <MessageCircle className="h-5 w-5" aria-hidden="true" />

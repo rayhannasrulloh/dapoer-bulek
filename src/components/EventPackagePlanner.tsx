@@ -10,6 +10,7 @@ import {
   buildEventRecommendation,
   getWhatsAppTextLink,
 } from "@/data/menu";
+import { trackEvent } from "@/lib/analytics";
 
 interface EventPackagePlannerProps {
   onApplyPackage: (
@@ -98,6 +99,11 @@ export function EventPackagePlanner({
         note: `Paket ${currentEventLabel} (${guestCount} tamu)`,
       }))
     );
+    trackEvent("apply_event_package", {
+      event_type: eventType,
+      guest_count: guestCount,
+      items_count: recommendations.length,
+    });
     setAppliedMessage(
       `${recommendations.length} menu paket ditambahkan ke formulir pesanan.`
     );
@@ -395,6 +401,13 @@ export function EventPackagePlanner({
               href={consultUrl}
               target="_blank"
               rel="noopener noreferrer"
+              onClick={() =>
+                trackEvent("click_whatsapp", {
+                  location: "event_planner_consult",
+                  event_type: eventType,
+                  guest_count: guestCount,
+                })
+              }
               className="inline-flex min-h-[48px] items-center justify-center gap-2 rounded-full border border-[#85807A] bg-charcoal px-5 py-2.5 text-sm font-semibold text-cream transition-colors hover:border-golden hover:text-golden"
             >
               <MessageCircle className="h-4 w-4" aria-hidden="true" />
